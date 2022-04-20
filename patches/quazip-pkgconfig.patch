@@ -1,0 +1,9 @@
+diff --git a/quazip/quazip.pc.cmakein b/quazip/quazip.pc.cmakein
+index 283edd8..3563d5f 100644
+--- a/quazip/quazip.pc.cmakein
++++ b/quazip/quazip.pc.cmakein
+@@ -8,4 +8,3 @@ Description: Minizip wrapper library for Qt @QUAZIP_QT_MAJOR_VERSION@.x
+ Version: @QUAZIP_LIB_VERSION@
+ Libs: -l@QUAZIP_LIB_FILE_NAME@
+ Cflags: -I${includedir}/@QUAZIP_DIR_NAME@ -I${includedir}/@QUAZIP_INCLUDE_PATH@
+-Requires: @QUAZIP_PKGCONFIG_REQUIRES@
