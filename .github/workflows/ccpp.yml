@@ -478,17 +478,14 @@ jobs:
       - name: Download qtbase
         uses: suisei-cn/actions-download-file@v1
         with:
-          url: "qtbase [this](https://download.qt.io/official_releases/qt/6.3/6.3.0/submodules/qtbase-everywhere-src-6.3.0.tar.xz)!"
+          url: "qtbase [this](https://download.qt.io/official_releases/qt/6.3/6.3.1/submodules/qtbase-everywhere-src-6.3.1.tar.xz)!"
           target: downloads/
           auto-match: true
 
       - name: Extract qtbase
         shell: bash
         working-directory: sources
-        run: |
-          tar -xf ../downloads/qtbase-everywhere-src-6.3.0.tar.xz
-          cd qtbase-everywhere-src-6.3.0
-          patch -p1 < ../../patches/qtbase-pcre2.patch
+        run: tar -xf ../downloads/qtbase-everywhere-src-6.3.1.tar.xz
 
       - name: Configure qtbase
         env:
@@ -498,7 +495,7 @@ jobs:
           CFLAGS: -I${{matrix.prefix_path2}}/include
           LDFLAGS: -L${{matrix.prefix_path2}}/lib
         run: >
-          cmake -S sources/qtbase-everywhere-src-6.3.0 -B sources/qtbase-everywhere-src-6.3.0/build
+          cmake -S sources/qtbase-everywhere-src-6.3.1 -B sources/qtbase-everywhere-src-6.3.1/build
           -G Ninja
           -DCMAKE_BUILD_TYPE=${{matrix.buildtype}}
           -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path}}"
@@ -544,25 +541,25 @@ jobs:
           -DFEATURE_system_sqlite=OFF
 
       - name: Build qtbase
-        working-directory: sources/qtbase-everywhere-src-6.3.0/build
+        working-directory: sources/qtbase-everywhere-src-6.3.1/build
         run: cmake --build .
 
       - name: Install qtbase
-        working-directory: sources/qtbase-everywhere-src-6.3.0/build
+        working-directory: sources/qtbase-everywhere-src-6.3.1/build
         run: cmake --install .
 
 
       - name: Download qttools
         uses: suisei-cn/actions-download-file@v1
         with:
-          url: "qttools [this](https://download.qt.io/official_releases/qt/6.3/6.3.0/submodules/qttools-everywhere-src-6.3.0.tar.xz)!"
+          url: "qttools [this](https://download.qt.io/official_releases/qt/6.3/6.3.1/submodules/qttools-everywhere-src-6.3.1.tar.xz)!"
           target: downloads/
           auto-match: true
 
       - name: Extract qttools
         shell: bash
         working-directory: sources
-        run: tar -xf ../downloads/qttools-everywhere-src-6.3.0.tar.xz
+        run: tar -xf ../downloads/qttools-everywhere-src-6.3.1.tar.xz
 
       - name: Compile qttools
         env:
@@ -571,7 +568,7 @@ jobs:
           PKG_CONFIG_PATH: ${{matrix.prefix_path}}\lib\pkgconfig
           CFLAGS: -I${{matrix.prefix_path2}}/include
           LDFLAGS: -L${{matrix.prefix_path2}}/lib
-        working-directory: sources/qttools-everywhere-src-6.3.0
+        working-directory: sources/qttools-everywhere-src-6.3.1
         run: |
           mkdir build
           cd build
@@ -583,14 +580,14 @@ jobs:
       - name: Download qt5compat
         uses: suisei-cn/actions-download-file@v1
         with:
-          url: "qt5compat [this](https://download.qt.io/official_releases/qt/6.3/6.3.0/submodules/qt5compat-everywhere-src-6.3.0.tar.xz)!"
+          url: "qt5compat [this](https://download.qt.io/official_releases/qt/6.3/6.3.1/submodules/qt5compat-everywhere-src-6.3.1.tar.xz)!"
           target: downloads/
           auto-match: true
 
       - name: Extract qt5compat
         shell: bash
         working-directory: sources
-        run: tar -xf ../downloads/qt5compat-everywhere-src-6.3.0.tar.xz
+        run: tar -xf ../downloads/qt5compat-everywhere-src-6.3.1.tar.xz
 
       - name: Compile qt5compat
         env:
@@ -599,7 +596,7 @@ jobs:
           PKG_CONFIG_PATH: ${{matrix.prefix_path}}\lib\pkgconfig
           CFLAGS: -I${{matrix.prefix_path2}}/include
           LDFLAGS: -L${{matrix.prefix_path2}}/lib
-        working-directory: sources/qt5compat-everywhere-src-6.3.0
+        working-directory: sources/qt5compat-everywhere-src-6.3.1
         run: |
           mkdir build
           cd build
@@ -611,14 +608,14 @@ jobs:
       - name: Download qtactiveqt
         uses: suisei-cn/actions-download-file@v1
         with:
-          url: "qtactiveqt [this](https://download.qt.io/official_releases/qt/6.3/6.3.0/submodules/qtactiveqt-everywhere-src-6.3.0.tar.xz)!"
+          url: "qtactiveqt [this](https://download.qt.io/official_releases/qt/6.3/6.3.1/submodules/qtactiveqt-everywhere-src-6.3.1.tar.xz)!"
           target: downloads/
           auto-match: true
 
       - name: Extract qtactiveqt
         shell: bash
         working-directory: sources
-        run: tar -xf ../downloads/qtactiveqt-everywhere-src-6.3.0.tar.xz
+        run: tar -xf ../downloads/qtactiveqt-everywhere-src-6.3.1.tar.xz
 
       - name: Compile qtactiveqt
         env:
@@ -627,7 +624,7 @@ jobs:
           PKG_CONFIG_PATH: ${{matrix.prefix_path}}\lib\pkgconfig
           CFLAGS: -I${{matrix.prefix_path2}}/include
           LDFLAGS: -L${{matrix.prefix_path2}}/lib
-        working-directory: sources/qtactiveqt-everywhere-src-6.3.0
+        working-directory: sources/qtactiveqt-everywhere-src-6.3.1
         run: |
           mkdir build
           cd build
