@@ -404,7 +404,7 @@ jobs:
           git submodule update --init --recursive
           git submodule update --remote file
           cd file
-          git checkout FILE5_41
+          git checkout FILE5_42
           patch -p1 < ../../../patches/file-1-fixes.patch
 
       - name: Compile file
