@@ -418,8 +418,11 @@ jobs:
           cd build
           cmake .. -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=${{matrix.buildtype}} -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path}}"
           cmake --build .
-          cmake --install .
-
+          copy *.lib ${{matrix.prefix_path}}\lib\
+          copy *.dll ${{matrix.prefix_path}}\bin\
+          copy ..\file\src\magic.h ${{matrix.prefix_path}}\include\
+          mkdir ${{matrix.prefix_path}}\share\magic
+          copy magic.mgc ${{matrix.prefix_path}}\share\magic\
 
       - name: Compile libiconv
         env:
