@@ -353,8 +353,8 @@ jobs:
           copy ${{matrix.buildtype}}\win32\liblzma_dll\*.lib ${{matrix.prefix_path}}\lib\
           copy ${{matrix.buildtype}}\win32\liblzma_dll\*.dll ${{matrix.prefix_path}}\bin\
 
-      - name: Compile liblzma (x86_x64)
-        if: matrix.arch == 'x86_x64'
+      - name: Compile liblzma (x86_64)
+        if: matrix.arch == 'x86_64'
         env:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{matrix.prefix_path}}\bin\pkgconf.exe
@@ -438,15 +438,15 @@ jobs:
           copy include\*.h ${{matrix.prefix_path}}\include\
 
       - name: Copy libiconv (x86)
-        if: matrix.buildtype == 'x86'
-        working-directory: sources/xz-5.2.5/windows/vs2019
+        if: matrix.arch == 'x86'
+        working-directory: sources/libiconv-for-Windows
         run: |
           copy lib\*.lib ${{matrix.prefix_path}}\lib\
           copy lib\*.dll ${{matrix.prefix_path}}\bin\
 
-      - name: Copy libiconv (x86_x64)
-        if: matrix.buildtype == 'x86_x64'
-        working-directory: sources/xz-5.2.5/windows/vs2019
+      - name: Copy libiconv (x86_64)
+        if: matrix.arch == 'x86_64'
+        working-directory: sources/libiconv-for-Windows
         run: |
           copy lib64\*.lib ${{matrix.prefix_path}}\lib\
           copy lib64\*.dll ${{matrix.prefix_path}}\bin\
