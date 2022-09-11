@@ -76,10 +76,10 @@ function update_package() {
       package_version_latest=$(wget -q -O- 'https://www.sqlite.org/download.html' | sed -n 's,.*sqlite-autoconf-\([0-9][^>]*\)\.tar.*,\1,p' | head -1)
       ;;
     "glib")
-      package_version_latest=$(wget -q -O- 'https://github.com/gnome/glib/tags' | sed -n 's#.*releases/tag/\([^"]*\).*#\1#p' | grep -v '\([0-9]\+\.\)\{2\}9[0-9]' | sort -Vr | head -1)
+      package_version_latest=$(wget -q -O- 'https://gitlab.gnome.org/GNOME/glib/tags' | sed -n "s,.*<a [^>]\+>v\?\([0-9]\+\.[0-9.]\+\)<.*,\1,p" | sort -V | tail -1)
       ;;
     "icu4c")
-      package_version_latest=$(wget -q -O- 'https://github.com/unicode-org/icu/releases/latest' | sed -n 's,.*releases/tag/\([^"&;]*\)".*,\1,p' | sed 's/release\-//g' | tr '\-' '\.' | sort -Vr | head -1)
+      package_version_latest=$(wget -q -O- 'https://github.com/unicode-org/icu/releases/latest' | sed -n 's,.*releases/tag/\([^"&;]*\)".*,\1,p' | sed 's/release\-//g' | tr '\-' '\.' | sort -V | tail -1)
       ;;
     "expat")
       package_version_latest=$(wget -q -O- 'https://sourceforge.net/projects/expat/files/expat/' | sed -n 's,.*/projects/.*/\([0-9][^"]*\)/".*,\1,p' | head -1)
@@ -88,7 +88,7 @@ function update_package() {
       package_version_latest=$(wget -q -O- 'https://sourceforge.net/projects/freetype/files/freetype2/' | sed -n 's,.*/projects/.*/\([0-9][^"]*\)/".*,\1,p' | sort -V | tail -1)
       ;;
     "harfbuzz")
-      package_version_latest=$(wget -q -O- 'https://github.com/harfbuzz/harfbuzz/releases' | sed -n 's,.*releases/tag/\([^"&;]*\)".*,\1,p' | sed 's/^v//g' | sort -V | head -1)
+      package_version_latest=$(wget -q -O- 'https://github.com/harfbuzz/harfbuzz/releases' | sed -n 's,.*releases/tag/\([^"&;]*\)".*,\1,p' | sed 's/^v//g' | sort -V | tail -1)
       ;;
     "qt")
       qt_major_version=$(wget -q -O- "https://download.qt.io/official_releases/qt/" | sed -n 's,.*<a href=\"\([0-9]*\.[0-9]*\).*,\1,p' | sort -V | tail -1)
