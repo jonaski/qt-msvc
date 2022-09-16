@@ -1005,25 +1005,82 @@ jobs:
   create-release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/ci'
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/release'
     needs:
       - build-windows-msvc
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3
+      - name: Checkout
+        uses: actions/checkout@v3
         with:
-          path: releases
-      - name: Create Release
+          fetch-depth: 0
+
+      - name: Set release tag
+        run: echo "release_tag=release-$GITHUB_RUN_ID" >> $GITHUB_ENV
+
+      - name: Set have release
+        run: echo "have_release=$(git tag -l | grep ${{env.release_tag}} >/dev/null 2>&1 && echo 1 || echo 0)" >> $GITHUB_ENV
+
+      - name: Delete existing release
+        if: env.have_release == '1'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          hub release delete "${{env.release_tag}}"
+          git tag -d "${{env.release_tag}}"
+          git push --delete origin "${{env.release_tag}}"
+
+      - name: Delete old releases
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        run: |
+          while [ "$(git tag | wc -l)" -ge "${{env.max_releases}}" ]; do
+            oldest_tag=$(git tag | head -1)
+            hub release delete "$oldest_tag"
+            git tag -d "$oldest_tag"
+            git push --delete origin "$oldest_tag"
+          done
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: releases
+
+      - name: Set release notes file
+        run: echo "release_notes_file=release_notes.txt" >> $GITHUB_ENV
+
+      - name: Create release notes
+        run: |
+          echo "Qt MSVC Dependencies Release $GITHUB_RUN_ID" > "${{env.release_notes_file}}"
+          echo "" >> "${{env.release_notes_file}}"
+          echo "Libraries:" >> "${{env.release_notes_file}}"
+          echo "" >> "${{env.release_notes_file}}"
+          echo "* Boost ${{env.boost_version}}" >> "${{env.release_notes_file}}"
+          echo "* pkgconf ${{env.pkgconf_version}}" >> "${{env.release_notes_file}}"
+          echo "* zlib ${{env.zlib_version}}" >> "${{env.release_notes_file}}"
+          echo "* OpenSSL ${{env.openssl_version}}" >> "${{env.release_notes_file}}"
+          echo "* libng ${{env.libpng_version}}" >> "${{env.release_notes_file}}"
+          echo "* PCRE2 ${{env.pcre2_version}}" >> "${{env.release_notes_file}}"
+          echo "* bzip2 ${{env.bzip2_version}}" >> "${{env.release_notes_file}}"
+          echo "* xz ${{env.xz_version}}" >> "${{env.release_notes_file}}"
+          echo "* Brotli ${{env.brotli_version}}" >> "${{env.release_notes_file}}"
+          echo "* SQLite ${{env.sqlite3_version}}" >> "${{env.release_notes_file}}"
+          echo "* GLib ${{env.glib_version}}" >> "${{env.release_notes_file}}"
+          echo "* GLib Networking ${{env.glib_networking_version}}" >> "${{env.release_notes_file}}"
+          echo "* ICU4C ${{env.icu4c_version}}" >> "${{env.release_notes_file}}"
+          echo "* Expat ${{env.expat_version}}" >> "${{env.release_notes_file}}"
+          echo "* FreeType ${{env.freetype_version}}" >> "${{env.release_notes_file}}"
+          echo "* Harfbuzz ${{env.harfbuzz_version}}" >> "${{env.release_notes_file}}"
+          echo "* Qt ${{env.qt_version}}" >> "${{env.release_notes_file}}"
+          echo "* QuaZip ${{env.quazip_version}}" >> "${{env.release_notes_file}}"
+
+      - name: Create Release
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        run: |
           set -x
-          hub release delete "latest" || true
-          hub release create \
-            -t "$GITHUB_SHA" \
-            -m "Qt MSVC" \
-            -a releases/releases/qt-msvc-x86-release.tar.xz \
-            -a releases/releases/qt-msvc-x86-debug.tar.xz \
-            -a releases/releases/qt-msvc-x86_64-release.tar.xz \
-            -a releases/releases/qt-msvc-x86_64-debug.tar.xz \
-            "latest"
+          files=()
+          for file in $(find releases -type f); do
+            echo "Adding file: ${file}"
+            files+=("-a" "${file}")
+          done
+          hub release create -t "$GITHUB_SHA" "${files[@]}" -F "${{env.release_notes_file}}" "${{env.release_tag}}"
