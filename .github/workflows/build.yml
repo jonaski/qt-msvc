@@ -12,7 +12,7 @@ env:
   libpng_version: '1.6.37'
   pcre2_version: '10.40'
   bzip2_version: '1.0.8'
-  xz_version: '5.2.5'
+  xz_version: '5.3.3alpha'
   brotli_version: '1.0.9'
   sqlite3_version: '3390300'
   glib_version: '2.73.3'
