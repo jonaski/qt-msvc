@@ -20,7 +20,7 @@ env:
   icu4c_version: '71.1'
   expat_version: '2.4.9'
   freetype_version: '2.12.1'
-  harfbuzz_version: '5.1.0'
+  harfbuzz_version: '5.2.0'
   qt_version: '6.3.2'
   quazip_version: '1.3'
 
@@ -707,6 +707,11 @@ jobs:
           cmake --build .
           cmake --install .
 
+      - name: copy freetype (debug)
+        if: matrix.buildtype == 'debug'
+        shell: bash
+        run: cp ${{matrix.prefix_path_unix}}/lib/freetyped.lib ${{matrix.prefix_path_unix}}/lib/freetype.lib
+
 
       - name: Download harfbuzz
         uses: suisei-cn/actions-download-file@v1
@@ -728,7 +733,7 @@ jobs:
           PKG_CONFIG_PATH: ${{matrix.prefix_path_backslash}}\lib\pkgconfig
         working-directory: sources/harfbuzz-${{env.harfbuzz_version}}
         run: |
-          meson --buildtype=${{matrix.buildtype}} --prefix="${{matrix.prefix_path_backslash}}" --pkg-config-path=${{matrix.prefix_path_backslash}}\lib\pkgconfig -Dtests=disabled -Ddocs=disabled -Dfreetype=enabled -Dicu=enabled build
+          meson --buildtype=${{matrix.buildtype}} --prefix="${{matrix.prefix_path_backslash}}" --pkg-config-path=${{matrix.prefix_path_backslash}}\lib\pkgconfig --wrap-mode=nodownload -Dtests=disabled -Ddocs=disabled -Dfreetype=enabled -Dicu=enabled build
           cd build
           ninja
           ninja install
@@ -758,6 +763,11 @@ jobs:
           cmake --build .
           cmake --install .
 
+      - name: copy freetype (debug)
+        if: matrix.buildtype == 'debug'
+        shell: bash
+        run: cp ${{matrix.prefix_path_unix}}/lib/freetyped.lib ${{matrix.prefix_path_unix}}/lib/freetype.lib
+
 
       - name: Download qtbase
         uses: suisei-cn/actions-download-file@v1
@@ -775,6 +785,10 @@ jobs:
         shell: bash
         working-directory: sources
         run: cp sqlite-*/sqlite3.{c,h} qtbase-everywhere-src-${{env.qt_version}}/src/3rdparty/sqlite/
+
+      - name: Delete harfbuzz.pc
+        shell: bash
+        run: rm -f "${{matrix.prefix_path_unix}}/lib/pkgconfig/harfbuzz.pc"
 
       - name: Configure qtbase
         shell: cmd
