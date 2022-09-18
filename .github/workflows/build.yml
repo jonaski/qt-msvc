@@ -24,6 +24,8 @@ env:
   qt_version: '6.3.2'
   quazip_version: '1.3'
 
+  max_releases: '6'
+
 jobs:
 
   build-windows-msvc:
