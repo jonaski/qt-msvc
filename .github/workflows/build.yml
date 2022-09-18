@@ -52,10 +52,10 @@ jobs:
          - description: "x86 Release"
            arch: x86
            buildtype: release
-           prefix_path_backslash: c:\qt_msvc_msvc_x86_release
-           prefix_path_backslash2: c:\\qt_msvc_msvc_x86_release
-           prefix_path_forwardslash: c:/qt_msvc_msvc_x86_release
-           prefix_path_unix: /c/qt_msvc_msvc_x86_release
+           prefix_path_backslash: c:\qt_msvc_x86_release
+           prefix_path_backslash2: c:\\qt_msvc_x86_release
+           prefix_path_forwardslash: c:/qt_msvc_x86_release
+           prefix_path_unix: /c/qt_msvc_x86_release
            openssl_platform: "VC-WIN32"
            msbuild_platform: "win32"
            libdir: "lib"
