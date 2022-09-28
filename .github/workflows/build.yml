@@ -21,6 +21,7 @@ env:
   expat_version: '2.4.9'
   freetype_version: '2.12.1'
   harfbuzz_version: '5.2.0'
+  mariadbclient_version: '3.3.2'
   qt_version: '6.3.2'
   quazip_version: '1.3'
 
@@ -134,6 +135,14 @@ jobs:
         run: |
           find "/c/program files (x86)/windows kits/" -name 'icu*.lib' -delete
           find "/c/program files (x86)/windows kits/" -name 'icu*.h' -delete
+
+      - name: Delete conflicting mysql
+        shell: bash
+        run: rm -rf /c/mysql
+
+      - name: Delete conflicting postgresql
+        shell: bash
+        run: rm -rf "/c/program files/postgresql"
 
 
       - name: Download nasm (x86)
@@ -769,6 +778,34 @@ jobs:
         run: cp ${{matrix.prefix_path_unix}}/lib/freetyped.lib ${{matrix.prefix_path_unix}}/lib/freetype.lib
 
 
+      - name: Download mariadbclient
+        uses: suisei-cn/actions-download-file@v1
+        with:
+          url: "mariadbclient [this](https://archive.mariadb.org/connector-c-${{env.mariadbclient_version}}/mariadb-connector-c-${{env.mariadbclient_version}}-src.tar.gz)!"
+          target: downloads/
+          auto-match: true
+
+      - name: Extract mariadbclient
+        shell: bash
+        working-directory: sources
+        run: tar -xf ../downloads/mariadb-connector-c-${{env.mariadbclient_version}}-src.tar.gz
+
+      - name: Compile mariadbclient
+        shell: cmd
+        env:
+          CL: "/MP"
+          PKG_CONFIG_EXECUTABLE: ${{matrix.prefix_path_backslash}}\bin\pkgconf.exe
+          PKG_CONFIG_PATH: ${{matrix.prefix_path_backslash}}\lib\pkgconfig
+        working-directory: sources/mariadb-connector-c-${{env.mariadbclient_version}}-src
+        run: |
+          mkdir build
+          cd build
+          cmake .. -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=${{matrix.buildtype}} -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path_backslash}}" -DBUILD_SHARED_LIBS=ON -DWITH_SSL=ON -DWITH_UNIT_TESTS=OFF
+          cmake --build .
+          cmake --install . --config ${{matrix.buildtype}}
+          copy ${{matrix.prefix_path_backslash}}\lib\mariadb\libmariadb.* ${{matrix.prefix_path_backslash}}\lib\
+
+
       - name: Download qtbase
         uses: suisei-cn/actions-download-file@v1
         with:
@@ -831,7 +868,7 @@ jobs:
           -DFEATURE_sql=ON
           -DFEATURE_sql_sqlite=ON
           -DFEATURE_sql_odbc=ON
-          -DFEATURE_sql_mysql=OFF
+          -DFEATURE_sql_mysql=ON
           -DFEATURE_sql_psql=OFF
           -DFEATURE_jpeg=ON
           -DFEATURE_png=ON
