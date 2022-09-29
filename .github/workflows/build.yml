@@ -22,7 +22,7 @@ env:
   freetype_version: '2.12.1'
   harfbuzz_version: '5.2.0'
   mariadbclient_version: '3.3.2'
-  qt_version: '6.3.2'
+  qt_version: '6.4.0'
   quazip_version: '1.3'
 
   max_releases: '6'
