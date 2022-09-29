@@ -2,28 +2,51 @@ name: Build
 on: [push, pull_request]
 
 env:
+
   nasm_version: '2.15.05'
+
   yasm_version: '1.3.0'
+
   win_flex_bison: '2.5.25'
+
   boost_version: '1.80.0'
+
   pkgconf_version: '1.9.3'
+
   zlib_version: '1.2.12'
+
   openssl_version: '3.0.5'
+
   libpng_version: '1.6.38'
+
   pcre2_version: '10.40'
+
   bzip2_version: '1.0.8'
+
   xz_version: '5.2.6'
+
   brotli_version: '1.0.9'
+
   file_version: '5.43'
+
   sqlite3_version: '3390400'
+
   glib_version: '2.74.0'
+
   icu4c_version: '71.1'
+
   expat_version: '2.4.9'
+
   freetype_version: '2.12.1'
+
   harfbuzz_version: '5.2.0'
+
   mariadbclient_version: '3.3.2'
+
   qt_version: '6.4.0'
+
   quazip_version: '1.3'
+
 
   max_releases: '6'
 
