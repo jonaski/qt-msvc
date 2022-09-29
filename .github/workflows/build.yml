@@ -1151,6 +1151,7 @@ jobs:
           echo "* Harfbuzz ${{env.harfbuzz_version}}" >> "${{env.release_notes_file}}"
           echo "* Qt ${{env.qt_version}}" >> "${{env.release_notes_file}}"
           echo "* QuaZip ${{env.quazip_version}}" >> "${{env.release_notes_file}}"
+          echo "* mariadbclient ${{env.mariadbclient_version}}" >> "${{env.release_notes_file}}"
 
       - name: Create Release
         env:
