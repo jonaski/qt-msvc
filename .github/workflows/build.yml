@@ -15,7 +15,7 @@ env:
   xz_version: '5.2.6'
   brotli_version: '1.0.9'
   file_version: '5.43'
-  sqlite3_version: '3390300'
+  sqlite3_version: '3390400'
   glib_version: '2.74.0'
   icu4c_version: '71.1'
   expat_version: '2.4.9'
