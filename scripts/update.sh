@@ -132,7 +132,7 @@ function update_package() {
       package_version_latest=$(wget -q -O- 'https://www.nasm.us/pub/nasm/releasebuilds/?C=M;O=D' | sed -n 's,.*href="\([0-9\.]*[^a-z]\)/".*,\1,p' | sort -V | tail -1)
       ;;
     "yasm")
-      package_version_latest=$(wget -q -O- 'https://github.com/yasm/yasm/tags' | sed -n 's#.*releases/tag/\([^"]*\).*#\1#p' | sed 's/^v//g' | sort -V | tail -1)
+      package_version_latest=$(wget -q -O- 'https://github.com/yasm/yasm/releases' | sed -n 's,.*releases/tag/\([^"&;]*\)".*,\1,p' | sed 's/^v//g' | sort -V | tail -1)
       ;;
     "boost")
       package_version_latest=$(wget -q -O- 'https://www.boost.org/users/download/' | sed -n 's,.*/release/\([0-9][^"/]*\)/.*,\1,p' | grep -v beta | sort -V | tail -1)
@@ -162,7 +162,7 @@ function update_package() {
       package_version_latest=$(wget -q -O- 'https://tukaani.org/xz/' | sed -n 's,.*xz-\([0-9][^>]*\)\.tar.*,\1,p' | grep -v 'alpha' | grep -v 'beta' | sort -V | tail -1)
       ;;
     "brotli")
-      package_version_latest=$(wget -q -O- 'https://github.com/google/brotli/tags' | sed -n 's#.*releases/tag/\([^"]*\).*#\1#p' | sed 's/^v//g' | sort -V | tail -1)
+      package_version_latest=$(wget -q -O- 'https://github.com/google/brotli/releases' | sed -n 's,.*releases/tag/\([^"&;]*\)".*,\1,p' | sed 's/^v//g' | sort -V | tail -1)
       ;;
     "sqlite3")
       package_version_latest=$(wget -q -O- 'https://www.sqlite.org/download.html' | sed -n 's,.*sqlite-autoconf-\([0-9][^>]*\)\.tar.*,\1,p' | sort -V | tail -1)
@@ -187,7 +187,7 @@ function update_package() {
       package_version_latest=$(wget -q -O- "https://download.qt.io/official_releases/qt/${qt_major_version}/" | sed -n 's,.*href="\([0-9]*\.[0-9]*\.[^/]*\)/".*,\1,p' | sort -V | tail -1)
       ;;
     "quazip")
-      package_version_latest=$(wget -q -O- 'https://github.com/stachenov/quazip/tags' | sed -n 's#.*releases/tag/\([^"]*\).*#\1#p' | sed 's/^v//g' | sort -V | tail -1)
+      package_version_latest=$(wget -q -O- 'https://github.com/stachenov/quazip/releases' | sed -n 's,.*releases/tag/\([^"&;]*\)".*,\1,p' | sed 's/^v//g' | sort -V | tail -1)
       ;;
     "win_flex_bison")
       package_version_latest=$(wget -q -O- 'https://sourceforge.net/projects/winflexbison/files/' | sed -n 's,.*<a href=".*files\/win_flex_bison-\(.*\)\.zip\/.*,\1,p' | grep -v 'latest' | sort -V | tail -1)
