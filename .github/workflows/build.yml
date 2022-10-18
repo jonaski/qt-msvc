@@ -52,6 +52,8 @@ env:
 
   max_releases: '6'
 
+  sourceforge_mirror: 'deac-fra.dl.sourceforge.net'
+
 jobs:
 
   build-windows-msvc:
@@ -372,7 +374,7 @@ jobs:
       - name: Download libpng
         uses: suisei-cn/actions-download-file@v1
         with:
-          url: "libpng [this](https://downloads.sourceforge.net/project/libpng/libpng16/${{env.libpng_version}}/libpng-${{env.libpng_version}}.tar.xz)!"
+          url: "libpng [this](https://${{env.sourceforge_mirror}}/project/libpng/libpng16/${{env.libpng_version}}/libpng-${{env.libpng_version}}.tar.xz)!"
           target: downloads/
           auto-match: true
 
@@ -404,7 +406,7 @@ jobs:
       - name: Download libjpeg-turbo
         uses: suisei-cn/actions-download-file@v1
         with:
-          url: "libjpeg-turbo [this](https://sourceforge.net/projects/libjpeg-turbo/files/${{env.libjpeg_turbo_version}}/libjpeg-turbo-${{env.libjpeg_turbo_version}}.tar.gz)!"
+          url: "libjpeg-turbo [this](https://${{env.sourceforge_mirror}}/project/libjpeg-turbo/${{env.libjpeg_turbo_version}}/libjpeg-turbo-${{env.libjpeg_turbo_version}}.tar.gz)!"
           target: downloads/
           auto-match: true
 
@@ -720,7 +722,7 @@ jobs:
       - name: Download expat
         uses: suisei-cn/actions-download-file@v1
         with:
-          url: "expat [this](https://jztkft.dl.sourceforge.net/project/expat/expat/${{env.expat_version}}/expat-${{env.expat_version}}.tar.bz2)!"
+          url: "expat [this](https://${{env.sourceforge_mirror}}/project/expat/expat/${{env.expat_version}}/expat-${{env.expat_version}}.tar.bz2)!"
           target: downloads/
           auto-match: true
 
@@ -747,7 +749,7 @@ jobs:
       - name: Download freetype
         uses: suisei-cn/actions-download-file@v1
         with:
-          url: "freetype [this](https://netix.dl.sourceforge.net/project/freetype/freetype2/${{env.freetype_version}}/freetype-${{env.freetype_version}}.tar.gz)!"
+          url: "freetype [this](https://${{env.sourceforge_mirror}}/project/freetype/freetype2/${{env.freetype_version}}/freetype-${{env.freetype_version}}.tar.gz)!"
           target: downloads/
           auto-match: true
 
