@@ -192,6 +192,9 @@ function update_package() {
     "win_flex_bison")
       package_version_latest=$(wget -q -O- 'https://sourceforge.net/projects/winflexbison/files/' | sed -n 's,.*<a href=".*files\/win_flex_bison-\(.*\)\.zip\/.*,\1,p' | grep -v 'latest' | sort -V | tail -1)
       ;;
+    "mariadbclient")
+      package_version_latest=$(wget -q -O- 'https://archive.mariadb.org/' | sed -n 's,.*connector-c-\([0-9\.]\+\).*,\1,p' | sort -V | tail -1)
+      ;;
     *)
       package_version_latest=
       error "No update rule for package: ${package}"
