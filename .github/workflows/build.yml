@@ -54,6 +54,9 @@ env:
 
   sourceforge_mirror: 'deac-fra.dl.sourceforge.net'
 
+  cmake_loglevel: 'DEBUG'
+
+
 jobs:
 
   build-windows-msvc:
@@ -129,15 +132,24 @@ jobs:
         shell: cmd
         run: pip install meson ninja
 
+      - name: Install wget
+        shell: cmd
+        run: choco install wget
+
       - name: Create sources directory
         shell: cmd
         run: mkdir sources
+
+      - name: Create downloads directory
+        shell: cmd
+        run: mkdir downloads
 
       - name: Create directories
         shell: bash
         run: mkdir -p ${{matrix.prefix_path_unix}}/{bin,lib,include}
 
       - name: Update PATH
+        shell: pwsh
         run: echo "${{matrix.prefix_path_backslash}}\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Set extra version variables
@@ -174,52 +186,45 @@ jobs:
 
       - name: Download nasm (x86)
         if: matrix.arch == 'x86'
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "nasm [this](https://www.nasm.us/pub/nasm/releasebuilds/${{env.nasm_version}}/win32/nasm-${{env.nasm_version}}-installer-x86.exe)!"
-          target: downloads/
-          auto-match: true
+        shell: bash
+        working-directory: downloads
+        run: wget -t 3 https://www.nasm.us/pub/nasm/releasebuilds/${{env.nasm_version}}/win32/nasm-${{env.nasm_version}}-installer-x86.exe
 
       - name: Download nasm (x86_64)
         if: matrix.arch == 'x86_64'
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "nasm [this](https://www.nasm.us/pub/nasm/releasebuilds/${{env.nasm_version}}/win64/nasm-${{env.nasm_version}}-installer-x64.exe)!"
-          target: downloads/
-          auto-match: true
+        shell: bash
+        working-directory: downloads
+        run: wget -t 3 https://www.nasm.us/pub/nasm/releasebuilds/${{env.nasm_version}}/win64/nasm-${{env.nasm_version}}-installer-x64.exe
 
-      - name: Install nasm (x86)
+      - name: Create nasm directory
+        shell: cmd
+        run: mkdir c:\nasm
+
+      - name: Extract nasm (x86)
         if: matrix.arch == 'x86'
-        shell: pwsh
-        working-directory: downloads
-        run: |
-          mkdir c:\nasm
-          cd c:\nasm
-          7z x ${{github.workspace}}\downloads\nasm-${{env.nasm_version}}-installer-x86.exe
+        shell: cmd
+        working-directory: c:/nasm
+        run: 7z x "${{github.workspace}}\downloads\nasm-${{env.nasm_version}}-installer-x86.exe"
 
-      - name: Install nasm (x86_64)
+      - name: Extract nasm (x86_64)
         if: matrix.arch == 'x86_64'
-        shell: pwsh
-        working-directory: downloads
-        run: |
-          mkdir c:\nasm
-          cd c:\nasm
-          7z x ${{github.workspace}}\downloads\nasm-${{env.nasm_version}}-installer-x64.exe
+        shell: cmd
+        working-directory: c:/nasm
+        run: 7z x "${{github.workspace}}\downloads\nasm-${{env.nasm_version}}-installer-x64.exe"
 
       - name: Copy nasm
         shell: bash
         run: cp /c/nasm/nasm.exe /c/nasm/nasmw.exe
 
       - name: Add nasm to PATH
+        shell: pwsh
         run: echo "c:\nasm" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
 
       - name: Download yasm
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "yasm [this](http://www.tortall.net/projects/yasm/releases/yasm-${{env.yasm_version}}-win64.exe)!"
-          target: downloads/
-          auto-match: true
+        shell: bash
+        working-directory: downloads
+        run: wget -t 3 http://www.tortall.net/projects/yasm/releases/yasm-${{env.yasm_version}}-win64.exe
 
       - name: Copy yasm
         shell: bash
@@ -228,29 +233,28 @@ jobs:
 
 
       - name: Download win_flex_bison
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "win_flex_bison [this](https://github.com/lexxmark/winflexbison/releases/download/v${{env.win_flex_bison_version}}/win_flex_bison-${{env.win_flex_bison_version}}.zip)!"
-          target: downloads/
-          auto-match: true
+        shell: bash
+        working-directory: downloads
+        run: wget -t 3 https://github.com/lexxmark/winflexbison/releases/download/v${{env.win_flex_bison_version}}/win_flex_bison-${{env.win_flex_bison_version}}.zip
 
-      - name: Copy win_flex_bison
-        shell: pwsh
-        run: |
-          mkdir c:\win_flex_bison
-          cd c:\win_flex_bison
-          7z x ${{github.workspace}}\downloads\win_flex_bison-${{env.win_flex_bison_version}}.zip
+      - name: Create win_flex_bison directory
+        shell: cmd
+        run: mkdir c:\win_flex_bison
+
+      - name: Extract win_flex_bison
+        shell: cmd
+        working-directory: c:\win_flex_bison
+        run: 7z x "${{github.workspace}}\downloads\win_flex_bison-${{env.win_flex_bison_version}}.zip"
 
       - name: Add win_flex_bison to PATH
+        shell: pwsh
         run: echo "c:\win_flex_bison" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
 
       - name: Download Boost
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "Boost [this](https://boostorg.jfrog.io/artifactory/main/release/${{env.boost_version}}/source/boost_${{env.boost_version_underscore}}.tar.bz2)!"
-          target: downloads/
-          auto-match: true
+        shell: bash
+        working-directory: downloads
+        run: wget -t 3 https://boostorg.jfrog.io/artifactory/main/release/${{env.boost_version}}/source/boost_${{env.boost_version_underscore}}.tar.bz2
 
       - name: Extract Boost
         shell: bash
@@ -264,62 +268,76 @@ jobs:
 
 
       - name: Download pkgconf
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "pkgconf [this](https://github.com/pkgconf/pkgconf/archive/refs/tags/pkgconf-${{env.pkgconf_version}}.tar.gz)!"
-          target: downloads/
-          auto-match: true
+        shell: bash
+        working-directory: downloads
+        run: wget -t 3 https://github.com/pkgconf/pkgconf/archive/refs/tags/pkgconf-${{env.pkgconf_version}}.tar.gz
 
       - name: Extract pkgconf
         shell: bash
         working-directory: sources
         run: tar -xf ../downloads/pkgconf-${{env.pkgconf_version}}.tar.gz
 
-      - name: Compile pkgconf
+      - name: Configure pkgconf
         shell: cmd
         env:
           CL: "/MP"
         working-directory: sources/pkgconf-pkgconf-${{env.pkgconf_version}}
-        run: |
-          meson --buildtype=${{matrix.buildtype}} --prefix=${{matrix.prefix_path_backslash}} -Dtests=false build
-          cd build
-          ninja
-          ninja install
-          copy ${{matrix.prefix_path_backslash}}\bin\pkgconf.exe ${{matrix.prefix_path_backslash}}\bin\pkg-config.exe
+        run: meson --buildtype=${{matrix.buildtype}} --prefix=${{matrix.prefix_path_backslash}} --wrap-mode=nodownload -Dtests=false build
+
+      - name: Build pkgconf
+        shell: cmd
+        env:
+          CL: "/MP"
+        working-directory: sources/pkgconf-pkgconf-${{env.pkgconf_version}}/build
+        run: ninja
+
+      - name: Install pkgconf
+        shell: cmd
+        working-directory: sources/pkgconf-pkgconf-${{env.pkgconf_version}}/build
+        run: ninja install
+
+      - name: Copy pkgconf
+        shell: cmd
+        run: copy ${{matrix.prefix_path_backslash}}\bin\pkgconf.exe ${{matrix.prefix_path_backslash}}\bin\pkg-config.exe
 
 
       - name: Download zlib
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "zlib [this](https://zlib.net/zlib-${{env.zlib_version}}.tar.gz)!"
-          target: downloads/
-          auto-match: true
+        shell: bash
+        working-directory: downloads
+        run: wget -t 3 https://zlib.net/zlib-${{env.zlib_version}}.tar.gz
 
       - name: Extract zlib
         shell: bash
         working-directory: sources
         run: tar -xf ../downloads/zlib-${{env.zlib_version}}.tar.gz
 
-      - name: Compile zlib
+      - name: Configure zlib
         shell: cmd
         env:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{matrix.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{matrix.prefix_path_backslash}}\lib\pkgconfig
         working-directory: sources/zlib-${{env.zlib_version}}
-        run: |
-          mkdir build
-          cd build
-          cmake .. -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=${{matrix.buildtype}} -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path_backslash}}"
-          cmake --build .
-          cmake --install .
+        run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path_backslash}}"
 
-      - name: copy zlib (release)
+      - name: Build zlib
+        shell: cmd
+        env:
+          CL: "/MP"
+        working-directory: sources/zlib-${{env.zlib_version}}/build
+        run: cmake --build .
+
+      - name: Install zlib
+        shell: cmd
+        working-directory: sources/zlib-${{env.zlib_version}}/build
+        run: cmake --install .
+
+      - name: Copy zlib (release)
         if: matrix.buildtype == 'release'
         shell: bash
         run: cp ${{matrix.prefix_path_unix}}/lib/zlib.lib ${{matrix.prefix_path_unix}}/lib/z.lib
 
-      - name: copy zlib (debug)
+      - name: Copy zlib (debug)
         if: matrix.buildtype == 'debug'
         shell: bash
         run: |
@@ -328,11 +346,9 @@ jobs:
 
 
       - name: Download openssl
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "openssl [this](https://www.openssl.org/source/openssl-${{env.openssl_version}}.tar.gz)!"
-          target: downloads/
-          auto-match: true
+        shell: bash
+        working-directory: downloads
+        run: wget -t 3 https://www.openssl.org/source/openssl-${{env.openssl_version}}.tar.gz
 
       - name: Extract openssl
         shell: bash
@@ -359,24 +375,23 @@ jobs:
         working-directory: sources/openssl-${{env.openssl_version}}
         run: perl Configure ${{matrix.openssl_platform}} shared zlib no-capieng no-tests --prefix=${{matrix.prefix_path_backslash}} --libdir=lib --openssldir=${{matrix.prefix_path_backslash}}\ssl --debug --with-zlib-include=${{matrix.prefix_path_backslash}}\include --with-zlib-lib=${{matrix.prefix_path_backslash}}\lib\zlibd.lib
 
-      - name: Compile openssl
+      - name: Build openssl
         shell: cmd
         env:
           CL: "/MP"
-          PKG_CONFIG_EXECUTABLE: ${{matrix.prefix_path_backslash}}\bin\pkgconf.exe
-          PKG_CONFIG_PATH: ${{matrix.prefix_path_backslash}}\lib\pkgconfig
         working-directory: sources/openssl-${{env.openssl_version}}
-        run: |
-          nmake
-          nmake install_sw
+        run: nmake
+
+      - name: Install openssl
+        shell: cmd
+        working-directory: sources/openssl-${{env.openssl_version}}
+        run: nmake install_sw
 
 
       - name: Download libpng
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "libpng [this](https://${{env.sourceforge_mirror}}/project/libpng/libpng16/${{env.libpng_version}}/libpng-${{env.libpng_version}}.tar.xz)!"
-          target: downloads/
-          auto-match: true
+        shell: bash
+        working-directory: downloads
+        run: wget -t 3 https://${{env.sourceforge_mirror}}/project/libpng/libpng16/${{env.libpng_version}}/libpng-${{env.libpng_version}}.tar.xz
 
       - name: Extract libpng
         shell: bash
@@ -388,27 +403,32 @@ jobs:
         working-directory: sources/libpng-${{env.libpng_version}}
         run: patch -p1 < ../../patches/libpng-pkgconf.patch
 
-      - name: Compile libpng
+      - name: Configure libpng
         shell: cmd
         env:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{matrix.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{matrix.prefix_path_backslash}}\lib\pkgconfig
         working-directory: sources/libpng-${{env.libpng_version}}
-        run: |
-          mkdir build
-          cd build
-          cmake .. -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=${{matrix.buildtype}} -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path_backslash}}"
-          cmake --build .
-          cmake --install .
+        run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path_backslash}}"
+
+      - name: Build libpng
+        shell: cmd
+        env:
+          CL: "/MP"
+        working-directory: sources/libpng-${{env.libpng_version}}/build
+        run: cmake --build .
+
+      - name: Install libpng
+        shell: cmd
+        working-directory: sources/libpng-${{env.libpng_version}}/build
+        run: cmake --install .
 
 
       - name: Download libjpeg-turbo
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "libjpeg-turbo [this](https://${{env.sourceforge_mirror}}/project/libjpeg-turbo/${{env.libjpeg_turbo_version}}/libjpeg-turbo-${{env.libjpeg_turbo_version}}.tar.gz)!"
-          target: downloads/
-          auto-match: true
+        shell: bash
+        working-directory: downloads
+        run: wget -t 3 https://${{env.sourceforge_mirror}}/project/libjpeg-turbo/${{env.libjpeg_turbo_version}}/libjpeg-turbo-${{env.libjpeg_turbo_version}}.tar.gz
 
       - name: Extract libjpeg-turbo
         shell: bash
@@ -419,10 +439,13 @@ jobs:
         shell: cmd
         env:
           CL: "/MP"
-        run: cmake --log-level="DEBUG" -S sources/libjpeg-turbo-${{env.libjpeg_turbo_version}} -B sources/libjpeg-turbo-${{env.libjpeg_turbo_version}}/build -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.buildtype}} -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path_backslash}}" -DBUILD_SHARED_LIBS=ON -DENABLE_SHARED=ON
+        working-directory: sources/libjpeg-turbo-${{env.libjpeg_turbo_version}}
+        run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G Ninja -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path_backslash}}" -DBUILD_SHARED_LIBS=ON -DENABLE_SHARED=ON
 
       - name: Build libjpeg-turbo
         shell: cmd
+        env:
+          CL: "/MP"
         working-directory: sources/libjpeg-turbo-${{env.libjpeg_turbo_version}}/build
         run: cmake --build .
 
@@ -433,30 +456,35 @@ jobs:
 
 
       - name: Download pcre2
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "pcre2 [this](https://github.com/PhilipHazel/pcre2/releases/download/pcre2-${{env.pcre2_version}}/pcre2-${{env.pcre2_version}}.tar.bz2)!"
-          target: downloads/
-          auto-match: true
+        shell: bash
+        working-directory: downloads
+        run: wget -t 3 https://github.com/PhilipHazel/pcre2/releases/download/pcre2-${{env.pcre2_version}}/pcre2-${{env.pcre2_version}}.tar.bz2
 
       - name: Extract pcre2
         shell: bash
         working-directory: sources
         run: tar -xf ../downloads/pcre2-${{env.pcre2_version}}.tar.bz2
 
-      - name: Compile pcre2
+      - name: Configure pcre2
         shell: cmd
         env:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{matrix.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{matrix.prefix_path_backslash}}\lib\pkgconfig
         working-directory: sources/pcre2-${{env.pcre2_version}}
-        run: |
-          mkdir build
-          cd build
-          cmake .. -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=${{matrix.buildtype}} -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path_backslash}}" -DBUILD_SHARED_LIBS=ON -DBUILD_STATIC_LIBS=OFF -DPCRE2_SUPPORT_UNICODE=ON -DPCRE2_BUILD_PCRE2_8=ON -DPCRE2_BUILD_PCRE2_16=ON -DPCRE2_BUILD_PCRE2_32=ON -DPCRE2_SUPPORT_UNICODE=ON -DPCRE2_BUILD_TESTS=OFF
-          cmake --build .
-          cmake --install .
+        run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path_backslash}}" -DBUILD_SHARED_LIBS=ON -DBUILD_STATIC_LIBS=OFF -DPCRE2_SUPPORT_UNICODE=ON -DPCRE2_BUILD_PCRE2_8=ON -DPCRE2_BUILD_PCRE2_16=ON -DPCRE2_BUILD_PCRE2_32=ON -DPCRE2_SUPPORT_UNICODE=ON -DPCRE2_BUILD_TESTS=OFF
+
+      - name: Build pcre2
+        shell: cmd
+        env:
+          CL: "/MP"
+        working-directory: sources/pcre2-${{env.pcre2_version}}/build
+        run: cmake --build .
+
+      - name: Install pcre2
+        shell: cmd
+        working-directory: sources/pcre2-${{env.pcre2_version}}/build
+        run: cmake --install .
 
       - name: copy pcre2 lib (debug)
         if: matrix.buildtype == 'debug'
@@ -465,41 +493,46 @@ jobs:
 
 
       - name: Download bzip2
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "bzip2 [this](https://sourceware.org/pub/bzip2/bzip2-${{env.bzip2_version}}.tar.gz)!"
-          target: downloads/
-          auto-match: true
+        shell: bash
+        working-directory: downloads
+        run: wget -t 3 https://sourceware.org/pub/bzip2/bzip2-${{env.bzip2_version}}.tar.gz
 
       - name: Extract bzip2
         shell: bash
         working-directory: sources
-        run: |
-          tar -xf ../downloads/bzip2-${{env.bzip2_version}}.tar.gz
-          cd bzip2-${{env.bzip2_version}}
-          patch -p1 < ../../patches/bzip2-cmake.patch
+        run: tar -xf ../downloads/bzip2-${{env.bzip2_version}}.tar.gz
 
-      - name: Compile bzip2
+      - name: Patch bzip2
+        shell: bash
+        working-directory: sources/bzip2-${{env.bzip2_version}}
+        run: patch -p1 < ../../patches/bzip2-cmake.patch
+
+      - name: Configure bzip2
         shell: cmd
         env:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{matrix.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{matrix.prefix_path_backslash}}\lib\pkgconfig
         working-directory: sources/bzip2-${{env.bzip2_version}}
-        run: |
-          mkdir build2
-          cd build2
-          cmake .. -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=${{matrix.buildtype}} -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path_backslash}}"
-          cmake --build .
-          cmake --install .
+        run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path_backslash}}"
+
+      - name: Build bzip2
+        shell: cmd
+        env:
+          CL: "/MP"
+        working-directory: sources/bzip2-${{env.bzip2_version}}/build
+        run: cmake --build .
+
+      - name: Install bzip2
+        shell: cmd
+        working-directory: sources/bzip2-${{env.bzip2_version}}/build
+        run: cmake --install .
 
 
       - name: Download xz
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "xz [this](https://tukaani.org/xz/xz-${{env.xz_version}}.tar.xz)!"
-          target: downloads/
-          auto-match: true
+        shell: bash
+        working-directory: downloads
+        run: wget -t 3 https://tukaani.org/xz/xz-${{env.xz_version}}.tar.xz
 
       - name: Extract xz
         shell: bash
@@ -511,21 +544,15 @@ jobs:
         working-directory: sources/xz-${{env.xz_version}}
         run: patch -p1 < ../../patches/xz-config.patch
 
-      - name: Compile xz
+      - name: Build xz
         shell: cmd
         env:
           CL: "/MP"
-          PKG_CONFIG_EXECUTABLE: ${{matrix.prefix_path_backslash}}\bin\pkgconf.exe
-          PKG_CONFIG_PATH: ${{matrix.prefix_path_backslash}}\lib\pkgconfig
         working-directory: sources/xz-${{env.xz_version}}/windows/vs2019
         run: msbuild xz_win.sln /property:Configuration=${{matrix.buildtype}} /p:platform=${{matrix.msbuild_platform}}
 
       - name: Install xz
         shell: cmd
-        env:
-          CL: "/MP"
-          PKG_CONFIG_EXECUTABLE: ${{matrix.prefix_path_backslash}}\bin\pkgconf.exe
-          PKG_CONFIG_PATH: ${{matrix.prefix_path_backslash}}\lib\pkgconfig
         working-directory: sources/xz-${{env.xz_version}}/windows/vs2019
         run: |
           copy ${{matrix.buildtype}}\${{matrix.msbuild_platform}}\liblzma_dll\*.lib ${{matrix.prefix_path_backslash}}\lib\
@@ -536,30 +563,59 @@ jobs:
 
 
       - name: Download brotli
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "brotli [this](https://github.com/google/brotli/archive/refs/tags/v${{env.brotli_version}}.tar.gz)!"
-          target: downloads/
-          auto-match: true
+        shell: bash
+        working-directory: downloads
+        run: wget -t 3 https://github.com/google/brotli/archive/refs/tags/v${{env.brotli_version}}.tar.gz
 
       - name: Extract brotli
         shell: bash
         working-directory: sources
         run: tar -xf ../downloads/v${{env.brotli_version}}.tar.gz
 
-      - name: Compile brotli
+      - name: Configure brotli
         shell: cmd
         env:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{matrix.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{matrix.prefix_path_backslash}}\lib\pkgconfig
         working-directory: sources/brotli-${{env.brotli_version}}
+        run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build_dir -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path_backslash}}" -DBUILD_TESTING=OFF
+
+      - name: Build brotli
+        shell: cmd
+        env:
+          CL: "/MP"
+        working-directory: sources/brotli-${{env.brotli_version}}/build_dir
+        run: cmake --build .
+
+      - name: Install brotli
+        shell: cmd
+        working-directory: sources/brotli-${{env.brotli_version}}/build_dir
+        run: cmake --install .
+
+
+      - name: Download libiconv
+        shell: cmd
+        working-directory: sources
         run: |
-          mkdir build2
-          cd build2
-          cmake .. -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=${{matrix.buildtype}} -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path_backslash}}" -DBUILD_TESTING=OFF
-          cmake --build .
-          cmake --install .
+          git clone https://github.com/pffang/libiconv-for-Windows
+          cd libiconv-for-Windows
+          git checkout 9b7aba8da6e125ef33912fa4412779279f204003
+
+      - name: Build libiconv
+        shell: cmd
+        env:
+          CL: "/MP"
+        working-directory: sources/libiconv-for-Windows
+        run: msbuild libiconv.sln /property:Configuration=${{matrix.buildtype}}
+
+      - name: Install libiconv
+        shell: cmd
+        working-directory: sources/libiconv-for-Windows
+        run: |
+          copy include\*.h ${{matrix.prefix_path_backslash}}\include\
+          copy ${{matrix.libdir}}\*.lib ${{matrix.prefix_path_backslash}}\lib\
+          copy ${{matrix.libdir}}\*.dll ${{matrix.prefix_path_backslash}}\bin\
 
 
       - name: Download file
@@ -572,19 +628,29 @@ jobs:
           git submodule update --remote file
           cd file
           git checkout FILE${{env.file_version_underscore}}
-          patch -p1 < ../../../patches/file-msvc.patch
 
-      - name: Compile file
+      - name: Patch file
+        shell: bash
+        working-directory: sources/file-windows/file
+        run: patch -p1 < ../../../patches/file-msvc.patch
+
+      - name: Configure file
         env:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{matrix.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{matrix.prefix_path_backslash}}\lib\pkgconfig
         working-directory: sources/file-windows
+        run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path_backslash}}"
+
+      - name: Build file
+        env:
+          CL: "/MP"
+        working-directory: sources/file-windows/build
+        run: cmake --build .
+
+      - name: Install file
+        working-directory: sources/file-windows/build
         run: |
-          mkdir build
-          cd build
-          cmake .. -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=${{matrix.buildtype}} -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path_backslash}}"
-          cmake --build .
           copy *.lib ${{matrix.prefix_path_backslash}}\lib\
           copy *.dll ${{matrix.prefix_path_backslash}}\bin\
           copy ..\file\src\magic.h ${{matrix.prefix_path_backslash}}\include\
@@ -592,18 +658,20 @@ jobs:
           copy magic.mgc ${{matrix.prefix_path_backslash}}\share\magic\
 
 
-      - name: Compile libiconv
+      - name: Download libiconv
         shell: cmd
-        env:
-          CL: "/MP"
-          PKG_CONFIG_EXECUTABLE: ${{matrix.prefix_path_backslash}}\bin\pkgconf.exe
-          PKG_CONFIG_PATH: ${{matrix.prefix_path_backslash}}\lib\pkgconfig
         working-directory: sources
         run: |
           git clone https://github.com/pffang/libiconv-for-Windows
           cd libiconv-for-Windows
           git checkout 9b7aba8da6e125ef33912fa4412779279f204003
-          msbuild libiconv.sln /property:Configuration=${{matrix.buildtype}}
+
+      - name: Build libiconv
+        shell: cmd
+        env:
+          CL: "/MP"
+        working-directory: sources/libiconv-for-Windows
+        run: msbuild libiconv.sln /property:Configuration=${{matrix.buildtype}}
 
       - name: Install libiconv
         shell: cmd
@@ -615,18 +683,16 @@ jobs:
 
 
       - name: Download SQLite
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "SQLite [this](https://sqlite.org/2022/sqlite-autoconf-${{env.sqlite3_version}}.tar.gz)!"
-          target: downloads/
-          auto-match: true
+        shell: bash
+        working-directory: downloads
+        run: wget -t 3 https://sqlite.org/2022/sqlite-autoconf-${{env.sqlite3_version}}.tar.gz
 
       - name: Extract SQLite
         shell: bash
         working-directory: sources
         run: tar -xf ../downloads/sqlite-autoconf-${{env.sqlite3_version}}.tar.gz
 
-      - name: Compile SQlite
+      - name: Build SQlite
         shell: cmd
         env:
           CL: "/MP"
@@ -635,7 +701,7 @@ jobs:
           cl -DSQLITE_API="__declspec(dllexport)" -DSQLITE_ENABLE_FTS5 -DSQLITE_ENABLE_COLUMN_METADATA sqlite3.c -link -dll -out:sqlite3.dll
           cl shell.c sqlite3.c -Fe:sqlite3.exe
 
-      - name: Copy SQLite
+      - name: Install SQLite
         shell: cmd
         working-directory: sources/sqlite-autoconf-${{env.sqlite3_version}}
         run: |
@@ -662,18 +728,16 @@ jobs:
 
 
       - name: Download GLib
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "GLib [this](https://download.gnome.org/sources/glib/${{env.glib_version_short}}/glib-${{env.glib_version}}.tar.xz)!"
-          target: downloads/
-          auto-match: true
+        shell: bash
+        working-directory: downloads
+        run: wget -t 3 https://download.gnome.org/sources/glib/${{env.glib_version_short}}/glib-${{env.glib_version}}.tar.xz
 
       - name: Extract GLib
         shell: bash
         working-directory: sources
         run: tar -xf ../downloads/glib-${{env.glib_version}}.tar.xz || true
 
-      - name: Compile GLib
+      - name: Configure GLib
         shell: cmd
         env:
           CL: "/MP"
@@ -682,33 +746,41 @@ jobs:
           CFLAGS: -I${{matrix.prefix_path_backslash}}\include
           CXXFLAGS: -I${{matrix.prefix_path_backslash}}\include
           LDFLAGS: -L${{matrix.prefix_path_backslash}}\lib
-
         working-directory: sources/glib-${{env.glib_version}}
-        run: |
-          meson --buildtype=${{matrix.buildtype}} --prefix=${{matrix.prefix_path_backslash}} --pkg-config-path=${{matrix.prefix_path_backslash}}\lib\pkgconfig build
-          cd build
-          ninja
-          ninja install
+        run: meson --buildtype=${{matrix.buildtype}} --prefix=${{matrix.prefix_path_backslash}} --pkg-config-path=${{matrix.prefix_path_backslash}}\lib\pkgconfig build
+
+      - name: Build GLib
+        shell: cmd
+        env:
+          CL: "/MP"
+          CFLAGS: -I${{matrix.prefix_path_backslash}}\include
+          CXXFLAGS: -I${{matrix.prefix_path_backslash}}\include
+          LDFLAGS: -L${{matrix.prefix_path_backslash}}\lib
+        working-directory: sources/glib-${{env.glib_version}}/build
+        run: ninja
+
+      - name: Install GLib
+        shell: cmd
+        working-directory: sources/glib-${{env.glib_version}}/build
+        run: ninja install
 
 
       - name: Download icu
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "icu [this](https://github.com/unicode-org/icu/releases/download/release-${{env.icu4c_version_dash}}/icu4c-${{env.icu4c_version_underscore}}-src.zip)!"
-          target: downloads/
-          auto-match: true
+        shell: bash
+        working-directory: downloads
+        run: wget -t 3 https://github.com/unicode-org/icu/releases/download/release-${{env.icu4c_version_dash}}/icu4c-${{env.icu4c_version_underscore}}-src.zip
 
       - name: Extract icu
         shell: bash
         working-directory: sources
         run: 7z x ../downloads/icu4c-${{env.icu4c_version_underscore}}-src.zip
 
-      - name: Compile icu
+      - name: Build icu
         shell: cmd
         env:
           CL: "/MP"
         working-directory: sources/icu/source/allinone
-        run: msbuild allinone.sln /property:Configuration=${{matrix.buildtype}} /p:platform=${{matrix.msbuild_platform}} || goto end
+        run: msbuild allinone.sln /property:Configuration=${{matrix.buildtype}} /p:platform=${{matrix.msbuild_platform}}
 
       - name: Install icu
         shell: bash
@@ -720,88 +792,104 @@ jobs:
 
 
       - name: Download expat
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "expat [this](https://${{env.sourceforge_mirror}}/project/expat/expat/${{env.expat_version}}/expat-${{env.expat_version}}.tar.bz2)!"
-          target: downloads/
-          auto-match: true
+        shell: bash
+        working-directory: downloads
+        run: wget -t 3 https://${{env.sourceforge_mirror}}/project/expat/expat/${{env.expat_version}}/expat-${{env.expat_version}}.tar.bz2
 
       - name: Extract expat
         shell: bash
         working-directory: sources
         run: tar -xf ../downloads/expat-${{env.expat_version}}.tar.bz2
 
-      - name: Compile expat
+      - name: Configure expat
         shell: cmd
         env:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{matrix.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{matrix.prefix_path_backslash}}\lib\pkgconfig
         working-directory: sources/expat-${{env.expat_version}}
-        run: |
-          mkdir build
-          cd build
-          cmake .. -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=${{matrix.buildtype}} -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path_backslash}}" -DEXPAT_SHARED_LIBS=ON -DEXPAT_BUILD_DOCS=OFF -DEXPAT_BUILD_EXAMPLES=OFF -DEXPAT_BUILD_FUZZERS=OFF -DEXPAT_BUILD_TESTS=OFF -DEXPAT_BUILD_TOOLS=OFF -DEXPAT_BUILD_PKGCONFIG=ON
-          cmake --build .
-          cmake --install .
+        run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path_backslash}}" -DEXPAT_SHARED_LIBS=ON -DEXPAT_BUILD_DOCS=OFF -DEXPAT_BUILD_EXAMPLES=OFF -DEXPAT_BUILD_FUZZERS=OFF -DEXPAT_BUILD_TESTS=OFF -DEXPAT_BUILD_TOOLS=OFF -DEXPAT_BUILD_PKGCONFIG=ON
+
+      - name: Build expat
+        shell: cmd
+        env:
+          CL: "/MP"
+        working-directory: sources/expat-${{env.expat_version}}/build
+        run: cmake --build .
+
+      - name: Install expat
+        shell: cmd
+        working-directory: sources/expat-${{env.expat_version}}/build
+        run: cmake --install .
 
 
       - name: Download freetype
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "freetype [this](https://${{env.sourceforge_mirror}}/project/freetype/freetype2/${{env.freetype_version}}/freetype-${{env.freetype_version}}.tar.gz)!"
-          target: downloads/
-          auto-match: true
+        shell: bash
+        working-directory: downloads
+        run: wget -t 3 https://${{env.sourceforge_mirror}}/project/freetype/freetype2/${{env.freetype_version}}/freetype-${{env.freetype_version}}.tar.gz
 
       - name: Extract freetype (boostrap)
         shell: bash
         working-directory: sources
         run: tar -xf ../downloads/freetype-${{env.freetype_version}}.tar.gz
 
-      - name: Compile freetype (boostrap)
+      - name: Configure freetype (boostrap)
         shell: cmd
         env:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{matrix.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{matrix.prefix_path_backslash}}\lib\pkgconfig
         working-directory: sources/freetype-${{env.freetype_version}}
-        run: |
-          mkdir build
-          cd build
-          cmake .. -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=${{matrix.buildtype}} -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path_backslash}}" -DBUILD_SHARED_LIBS=ON
-          cmake --build .
-          cmake --install .
+        run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path_backslash}}" -DBUILD_SHARED_LIBS=ON
 
-      - name: copy freetype (debug)
+      - name: Build freetype (boostrap)
+        shell: cmd
+        env:
+          CL: "/MP"
+        working-directory: sources/freetype-${{env.freetype_version}}/build
+        run: cmake --build .
+
+      - name: Install freetype (boostrap)
+        shell: cmd
+        working-directory: sources/freetype-${{env.freetype_version}}/build
+        run: cmake --install .
+
+      - name: Copy freetype (debug)
         if: matrix.buildtype == 'debug'
         shell: bash
         run: cp ${{matrix.prefix_path_unix}}/lib/freetyped.lib ${{matrix.prefix_path_unix}}/lib/freetype.lib
 
 
       - name: Download harfbuzz
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "harfbuzz [this](https://github.com/harfbuzz/harfbuzz/releases/download/${{env.harfbuzz_version}}/harfbuzz-${{env.harfbuzz_version}}.tar.xz)!"
-          target: downloads/
-          auto-match: true
+        shell: bash
+        working-directory: downloads
+        run: wget -t 3 https://github.com/harfbuzz/harfbuzz/releases/download/${{env.harfbuzz_version}}/harfbuzz-${{env.harfbuzz_version}}.tar.xz
 
       - name: Extract harfbuzz
         shell: bash
         working-directory: sources
         run: tar -xf ../downloads/harfbuzz-${{env.harfbuzz_version}}.tar.xz
 
-      - name: Compile harfbuzz
+      - name: Configure harfbuzz
         shell: cmd
         env:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{matrix.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{matrix.prefix_path_backslash}}\lib\pkgconfig
         working-directory: sources/harfbuzz-${{env.harfbuzz_version}}
-        run: |
-          meson --buildtype=${{matrix.buildtype}} --prefix="${{matrix.prefix_path_backslash}}" --pkg-config-path=${{matrix.prefix_path_backslash}}\lib\pkgconfig --wrap-mode=nodownload -Dtests=disabled -Ddocs=disabled -Dfreetype=enabled -Dicu=enabled build
-          cd build
-          ninja
-          ninja install
+        run: meson --buildtype=${{matrix.buildtype}} --prefix="${{matrix.prefix_path_backslash}}" --pkg-config-path=${{matrix.prefix_path_backslash}}\lib\pkgconfig --wrap-mode=nodownload -Dtests=disabled -Ddocs=disabled -Dfreetype=enabled -Dicu=enabled build
+
+      - name: Build harfbuzz
+        shell: cmd
+        env:
+          CL: "/MP"
+        working-directory: sources/harfbuzz-${{env.harfbuzz_version}}/build
+        run: ninja
+
+      - name: Install harfbuzz
+        shell: cmd
+        working-directory: sources/harfbuzz-${{env.harfbuzz_version}}/build
+        run: ninja install
 
 
       - name: Delete freetype bootstrap
@@ -814,60 +902,73 @@ jobs:
         working-directory: sources
         run: tar -xf ../downloads/freetype-${{env.freetype_version}}.tar.gz
 
-      - name: Compile freetype
+      - name: Configure freetype
         shell: cmd
         env:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{matrix.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{matrix.prefix_path_backslash}}\lib\pkgconfig
         working-directory: sources/freetype-${{env.freetype_version}}
-        run: |
-          mkdir build
-          cd build
-          cmake .. -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=${{matrix.buildtype}} -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path_backslash}}" -DBUILD_SHARED_LIBS=ON
-          cmake --build .
-          cmake --install .
+        run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path_backslash}}" -DBUILD_SHARED_LIBS=ON
 
-      - name: copy freetype (debug)
+      - name: Build freetype
+        shell: cmd
+        env:
+          CL: "/MP"
+        working-directory: sources/freetype-${{env.freetype_version}}/build
+        run: cmake --build .
+
+      - name: Install freetype
+        shell: cmd
+        working-directory: sources/freetype-${{env.freetype_version}}/build
+        run: cmake --install .
+
+      - name: Copy freetype (debug)
         if: matrix.buildtype == 'debug'
         shell: bash
         run: cp ${{matrix.prefix_path_unix}}/lib/freetyped.lib ${{matrix.prefix_path_unix}}/lib/freetype.lib
 
 
       - name: Download mariadbclient
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "mariadbclient [this](https://archive.mariadb.org/connector-c-${{env.mariadbclient_version}}/mariadb-connector-c-${{env.mariadbclient_version}}-src.tar.gz)!"
-          target: downloads/
-          auto-match: true
+        shell: bash
+        working-directory: downloads
+        run: wget -t 3 https://archive.mariadb.org/connector-c-${{env.mariadbclient_version}}/mariadb-connector-c-${{env.mariadbclient_version}}-src.tar.gz
 
       - name: Extract mariadbclient
         shell: bash
         working-directory: sources
         run: tar -xf ../downloads/mariadb-connector-c-${{env.mariadbclient_version}}-src.tar.gz
 
-      - name: Compile mariadbclient
+      - name: Configure mariadbclient
         shell: cmd
         env:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{matrix.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{matrix.prefix_path_backslash}}\lib\pkgconfig
         working-directory: sources/mariadb-connector-c-${{env.mariadbclient_version}}-src
-        run: |
-          mkdir build
-          cd build
-          cmake .. -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=${{matrix.buildtype}} -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path_backslash}}" -DBUILD_SHARED_LIBS=ON -DWITH_SSL=ON -DWITH_UNIT_TESTS=OFF
-          cmake --build .
-          cmake --install . --config ${{matrix.buildtype}}
-          copy ${{matrix.prefix_path_backslash}}\lib\mariadb\libmariadb.* ${{matrix.prefix_path_backslash}}\lib\
+        run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path_backslash}}" -DBUILD_SHARED_LIBS=ON -DWITH_SSL=ON -DWITH_UNIT_TESTS=OFF
+
+      - name: Build mariadbclient
+        shell: cmd
+        env:
+          CL: "/MP"
+        working-directory: sources/mariadb-connector-c-${{env.mariadbclient_version}}-src/build
+        run: cmake --build .
+
+      - name: Install mariadbclient
+        shell: cmd
+        working-directory: sources/mariadb-connector-c-${{env.mariadbclient_version}}-src/build
+        run: cmake --install . --config ${{matrix.buildtype}}
+
+      - name: Copy mariadbclient lib
+        shell: cmd
+        run: copy ${{matrix.prefix_path_backslash}}\lib\mariadb\libmariadb.* ${{matrix.prefix_path_backslash}}\lib\
 
 
       - name: Download qtbase
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "qtbase [this](https://download.qt.io/official_releases/qt/${{env.qt_version_short}}/${{env.qt_version}}/submodules/qtbase-everywhere-src-${{env.qt_version}}.tar.xz)!"
-          target: downloads/
-          auto-match: true
+        shell: bash
+        working-directory: downloads
+        run: wget -t 3 https://download.qt.io/official_releases/qt/${{env.qt_version_short}}/${{env.qt_version}}/submodules/qtbase-everywhere-src-${{env.qt_version}}.tar.xz
 
       - name: Extract qtbase
         shell: bash
@@ -891,10 +992,11 @@ jobs:
           PKG_CONFIG_PATH: ${{matrix.prefix_path_backslash}}\lib\pkgconfig
           CFLAGS: -I${{matrix.prefix_path_forwardslash}}/include
           LDFLAGS: -L${{matrix.prefix_path_forwardslash}}/lib
+        working-directory: sources/qtbase-everywhere-src-${{env.qt_version}}
         run: >
-          cmake -S sources/qtbase-everywhere-src-${{env.qt_version}} -B sources/qtbase-everywhere-src-${{env.qt_version}}/build
+          cmake -S . -B build
           -G Ninja
-          -DCMAKE_BUILD_TYPE=${{matrix.buildtype}}
+          -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}"
           -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path_backslash}}"
           -DBUILD_SHARED_LIBS=ON
           -DPKG_CONFIG_EXECUTABLE="${{matrix.prefix_path_backslash}}\bin\pkgconf.exe"
@@ -942,6 +1044,8 @@ jobs:
 
       - name: Build qtbase
         shell: cmd
+        env:
+          CL: "/MP"
         working-directory: sources/qtbase-everywhere-src-${{env.qt_version}}/build
         run: cmake --build .
 
@@ -952,11 +1056,9 @@ jobs:
 
 
       - name: Download qttools
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "qttools [this](https://download.qt.io/official_releases/qt/${{env.qt_version_short}}/${{env.qt_version}}/submodules/qttools-everywhere-src-${{env.qt_version}}.tar.xz)!"
-          target: downloads/
-          auto-match: true
+        shell: bash
+        working-directory: downloads
+        run: wget -t 3 https://download.qt.io/official_releases/qt/${{env.qt_version_short}}/${{env.qt_version}}/submodules/qttools-everywhere-src-${{env.qt_version}}.tar.xz
 
       - name: Extract qttools
         shell: bash
@@ -977,8 +1079,10 @@ jobs:
           cd build
           ${{matrix.prefix_path_backslash}}\bin\qt-configure-module.bat .. -feature-linguist -no-feature-assistant -no-feature-designer
 
-      - name: Compile qttools
+      - name: Build qttools
         shell: cmd
+        env:
+          CL: "/MP"
         working-directory: sources/qttools-everywhere-src-${{env.qt_version}}/build
         run: cmake --build .
 
@@ -989,11 +1093,9 @@ jobs:
 
 
       - name: Download qt5compat
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "qt5compat [this](https://download.qt.io/official_releases/qt/${{env.qt_version_short}}/${{env.qt_version}}/submodules/qt5compat-everywhere-src-${{env.qt_version}}.tar.xz)!"
-          target: downloads/
-          auto-match: true
+        shell: bash
+        working-directory: downloads
+        run: wget -t 3 https://download.qt.io/official_releases/qt/${{env.qt_version_short}}/${{env.qt_version}}/submodules/qt5compat-everywhere-src-${{env.qt_version}}.tar.xz
 
       - name: Extract qt5compat
         shell: bash
@@ -1014,8 +1116,10 @@ jobs:
           cd build
           ${{matrix.prefix_path_backslash}}\bin\qt-configure-module.bat ..
 
-      - name: Compile qt5compat
+      - name: Build qt5compat
         shell: cmd
+        env:
+          CL: "/MP"
         working-directory: sources/qt5compat-everywhere-src-${{env.qt_version}}/build
         run: cmake --build .
 
@@ -1026,11 +1130,9 @@ jobs:
 
 
       - name: Download qtactiveqt
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "qtactiveqt [this](https://download.qt.io/official_releases/qt/${{env.qt_version_short}}/${{env.qt_version}}/submodules/qtactiveqt-everywhere-src-${{env.qt_version}}.tar.xz)!"
-          target: downloads/
-          auto-match: true
+        shell: bash
+        working-directory: downloads
+        run: wget -t 3 https://download.qt.io/official_releases/qt/${{env.qt_version_short}}/${{env.qt_version}}/submodules/qtactiveqt-everywhere-src-${{env.qt_version}}.tar.xz
 
       - name: Extract qtactiveqt
         shell: bash
@@ -1051,8 +1153,10 @@ jobs:
           cd build
           ${{matrix.prefix_path_backslash}}\bin\qt-configure-module.bat ..
 
-      - name: Compile qtactiveqt
+      - name: Build qtactiveqt
         shell: cmd
+        env:
+          CL: "/MP"
         working-directory: sources/qtactiveqt-everywhere-src-${{env.qt_version}}/build
         run: cmake --build .
 
@@ -1063,19 +1167,19 @@ jobs:
 
 
       - name: Download quazip
-        uses: suisei-cn/actions-download-file@v1
-        with:
-          url: "quazip [this](https://github.com/stachenov/quazip/archive/refs/tags/v${{env.quazip_version}}.tar.gz)!"
-          target: downloads/
-          auto-match: true
+        shell: bash
+        working-directory: downloads
+        run: wget -t 3 https://github.com/stachenov/quazip/archive/refs/tags/v${{env.quazip_version}}.tar.gz
 
       - name: Extract quazip
         shell: bash
         working-directory: sources
-        run: |
-          tar -xf ../downloads/v${{env.quazip_version}}.tar.gz
-          cd quazip-${{env.quazip_version}}
-          patch -p1 < ../../patches/quazip-pkgconfig.patch
+        run: tar -xf ../downloads/v${{env.quazip_version}}.tar.gz
+
+      - name: Patch quazip
+        shell: bash
+        working-directory: sources/quazip-${{env.quazip_version}}
+        run: patch -p1 < ../../patches/quazip-pkgconfig.patch
 
       - name: Configure quazip
         shell: cmd
@@ -1086,13 +1190,12 @@ jobs:
           CFLAGS: -I${{matrix.prefix_path_forwardslash}}/include
           LDFLAGS: -L${{matrix.prefix_path_forwardslash}}/lib
         working-directory: sources/quazip-${{env.quazip_version}}
-        run: |
-          mkdir build
-          cd build
-          cmake .. -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=${{matrix.buildtype}} -DQUAZIP_QT_MAJOR_VERSION=6 -DBUILD_SHARED_LIBS=ON -DCMAKE_PREFIX_PATH=${{matrix.prefix_path_backslash}}\lib\cmake -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path_backslash}}"
+        run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DQUAZIP_QT_MAJOR_VERSION=6 -DBUILD_SHARED_LIBS=ON -DCMAKE_PREFIX_PATH="${{matrix.prefix_path_backslash}}\lib\cmake" -DCMAKE_INSTALL_PREFIX="${{matrix.prefix_path_backslash}}"
 
-      - name: Compile quazip
+      - name: Build quazip
         shell: cmd
+        env:
+          CL: "/MP"
         working-directory: sources/quazip-${{env.quazip_version}}/build
         run: cmake --build .
 
@@ -1104,8 +1207,7 @@ jobs:
 
       - name: Create archive
         shell: bash
-        run: |
-          tar -cJf qt-msvc-${{matrix.arch}}-${{matrix.buildtype}}.tar.xz --transform "s,^c/qt_msvc_${{matrix.arch}}_${{matrix.buildtype}},qt_msvc_${{matrix.arch}}_${{matrix.buildtype}}," ${{matrix.prefix_path_unix}}
+        run: tar -cJf qt-msvc-${{matrix.arch}}-${{matrix.buildtype}}.tar.xz --transform "s,^c/qt_msvc_${{matrix.arch}}_${{matrix.buildtype}},qt_msvc_${{matrix.arch}}_${{matrix.buildtype}}," ${{matrix.prefix_path_unix}}
 
       - uses: actions/upload-artifact@v3
         with:
