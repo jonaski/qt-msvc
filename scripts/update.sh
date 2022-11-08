@@ -195,6 +195,9 @@ function update_package() {
     "mariadbclient")
       package_version_latest=$(wget -q -O- 'https://archive.mariadb.org/' | sed -n 's,.*connector-c-\([0-9\.]\+\).*,\1,p' | sort -V | tail -1)
       ;;
+    "file")
+      package_version_latest=$(wget -q -O- 'https://astron.com/pub/file/' | grep 'file-' | sed -n 's,.*file-\([0-9][^>]*\)\.tar.*,\1,p' | tail -1)
+      ;;
     *)
       package_version_latest=
       error "No update rule for package: ${package}"
