@@ -341,7 +341,7 @@ jobs:
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
         working-directory: sources/openssl-${{env.openssl_version}}
-        run: perl Configure ${{matrix.openssl_platform}} shared zlib no-capieng no-tests --prefix=${{env.prefix_path_backslash}} --libdir=lib --openssldir=${{env.prefix_path_backslash}}\ssl --release --with-zlib-include=${{env.prefix_path_backslash}}\include --with-zlib-lib=${{env.prefix_path_backslash}}\lib\zlib.lib
+        run: perl Configure ${{env.openssl_platform}} shared zlib no-capieng no-tests --prefix=${{env.prefix_path_backslash}} --libdir=lib --openssldir=${{env.prefix_path_backslash}}\ssl --release --with-zlib-include=${{env.prefix_path_backslash}}\include --with-zlib-lib=${{env.prefix_path_backslash}}\lib\zlib.lib
 
       - name: Configure openssl (debug)
         if: matrix.buildtype == 'debug'
@@ -351,7 +351,7 @@ jobs:
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
         working-directory: sources/openssl-${{env.openssl_version}}
-        run: perl Configure ${{matrix.openssl_platform}} shared zlib no-capieng no-tests --prefix=${{env.prefix_path_backslash}} --libdir=lib --openssldir=${{env.prefix_path_backslash}}\ssl --debug --with-zlib-include=${{env.prefix_path_backslash}}\include --with-zlib-lib=${{env.prefix_path_backslash}}\lib\zlibd.lib
+        run: perl Configure ${{env.openssl_platform}} shared zlib no-capieng no-tests --prefix=${{env.prefix_path_backslash}} --libdir=lib --openssldir=${{env.prefix_path_backslash}}\ssl --debug --with-zlib-include=${{env.prefix_path_backslash}}\include --with-zlib-lib=${{env.prefix_path_backslash}}\lib\zlibd.lib
 
       - name: Build openssl
         shell: cmd
@@ -527,14 +527,14 @@ jobs:
         env:
           CL: "/MP"
         working-directory: sources/xz-${{env.xz_version}}/windows/vs2019
-        run: msbuild xz_win.sln /property:Configuration=${{matrix.buildtype}} /p:platform=${{matrix.msbuild_platform}}
+        run: msbuild xz_win.sln /property:Configuration=${{matrix.buildtype}} /p:platform=${{env.msbuild_platform}}
 
       - name: Install xz
         shell: cmd
         working-directory: sources/xz-${{env.xz_version}}/windows/vs2019
         run: |
-          copy ${{matrix.buildtype}}\${{matrix.msbuild_platform}}\liblzma_dll\*.lib ${{env.prefix_path_backslash}}\lib\
-          copy ${{matrix.buildtype}}\${{matrix.msbuild_platform}}\liblzma_dll\*.dll ${{env.prefix_path_backslash}}\bin\
+          copy ${{matrix.buildtype}}\${{env.msbuild_platform}}\liblzma_dll\*.lib ${{env.prefix_path_backslash}}\lib\
+          copy ${{matrix.buildtype}}\${{env.msbuild_platform}}\liblzma_dll\*.dll ${{env.prefix_path_backslash}}\bin\
           copy ..\..\src\liblzma\api\*.h ${{env.prefix_path_backslash}}\include\
           mkdir ${{env.prefix_path_backslash}}\include\lzma
           copy ..\..\src\liblzma\api\lzma\*.* ${{env.prefix_path_backslash}}\include\lzma\
@@ -592,8 +592,8 @@ jobs:
         working-directory: sources/libiconv-for-Windows
         run: |
           copy include\*.h ${{env.prefix_path_backslash}}\include\
-          copy ${{matrix.libdir}}\*.lib ${{env.prefix_path_backslash}}\lib\
-          copy ${{matrix.libdir}}\*.dll ${{env.prefix_path_backslash}}\bin\
+          copy ${{env.libdir}}\*.lib ${{env.prefix_path_backslash}}\lib\
+          copy ${{env.libdir}}\*.dll ${{env.prefix_path_backslash}}\bin\
 
 
       - name: Download file
@@ -656,8 +656,8 @@ jobs:
         working-directory: sources/libiconv-for-Windows
         run: |
           copy include\*.h ${{env.prefix_path_backslash}}\include\
-          copy ${{matrix.libdir}}\*.lib ${{env.prefix_path_backslash}}\lib\
-          copy ${{matrix.libdir}}\*.dll ${{env.prefix_path_backslash}}\bin\
+          copy ${{env.libdir}}\*.lib ${{env.prefix_path_backslash}}\lib\
+          copy ${{env.libdir}}\*.dll ${{env.prefix_path_backslash}}\bin\
 
 
       - name: Download SQLite
@@ -758,15 +758,15 @@ jobs:
         env:
           CL: "/MP"
         working-directory: sources/icu/source/allinone
-        run: msbuild allinone.sln /property:Configuration=${{matrix.buildtype}} /p:platform=${{matrix.msbuild_platform}}
+        run: msbuild allinone.sln /property:Configuration=${{matrix.buildtype}} /p:platform=${{env.msbuild_platform}}
 
       - name: Install icu
         shell: bash
         working-directory: sources/icu
         run: |
           cp -r include/unicode ${{env.prefix_path_unix}}/include/
-          cp ${{matrix.libdir}}/{*.lib,*.pdb,*.exp} ${{env.prefix_path_unix}}/lib/
-          cp ${{matrix.bindir}}/{*.dll,*.exe} ${{env.prefix_path_unix}}/bin/
+          cp ${{env.libdir}}/{*.lib,*.pdb,*.exp} ${{env.prefix_path_unix}}/lib/
+          cp ${{env.bindir}}/{*.dll,*.exe} ${{env.prefix_path_unix}}/bin/
 
 
       - name: Download expat
