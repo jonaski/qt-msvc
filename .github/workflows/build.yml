@@ -17,7 +17,7 @@ env:
 
   openssl_version: '3.0.7'
 
-  libpng_version: '1.6.38'
+  libpng_version: '1.6.39'
 
   libjpeg_turbo_version: '2.1.4'
 
