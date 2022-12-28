@@ -31,7 +31,7 @@ env:
 
   file_version: '5.43'
 
-  sqlite3_version: '3400000'
+  sqlite3_version: '3400100'
 
   glib_version: '2.75.1'
 
