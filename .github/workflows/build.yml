@@ -15,7 +15,7 @@ env:
 
   zlib_version: '1.2.13'
 
-  openssl_version: '3.0.7'
+  openssl_version: '3.0.8'
 
   libpng_version: '1.6.39'
 
