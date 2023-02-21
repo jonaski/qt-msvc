@@ -31,7 +31,7 @@ env:
 
   file_version: '5.44'
 
-  sqlite3_version: '3400100'
+  sqlite3_version: '3410000'
 
   glib_version: '2.75.3'
 
@@ -662,7 +662,7 @@ jobs:
       - name: Download SQLite
         shell: bash
         working-directory: downloads
-        run: wget -t 3 https://sqlite.org/2022/sqlite-autoconf-${{env.sqlite3_version}}.tar.gz
+        run: wget -t 3 https://sqlite.org/2023/sqlite-autoconf-${{env.sqlite3_version}}.tar.gz
 
       - name: Extract SQLite
         shell: bash
