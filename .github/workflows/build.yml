@@ -33,7 +33,7 @@ env:
 
   sqlite3_version: '3410100'
 
-  glib_version: '2.76.0'
+  glib_version: '2.76.1'
 
   icu4c_version: '72.1'
 
