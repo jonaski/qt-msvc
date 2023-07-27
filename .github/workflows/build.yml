@@ -29,7 +29,7 @@ env:
 
   brotli_version: '1.0.9'
 
-  file_version: '5.44'
+  file_version: '5.45'
 
   sqlite3_version: '3420000'
 
