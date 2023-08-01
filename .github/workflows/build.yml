@@ -620,9 +620,13 @@ jobs:
         working-directory: sources/libiconv-for-Windows
         run: |
           copy include\*.h ${{env.prefix_path_backslash}}\include\
-          copy ${{env.libdir}}\*.lib ${{env.prefix_path_backslash}}\lib\
-          copy ${{env.libdir}}\*.dll ${{env.prefix_path_backslash}}\bin\
+          copy output\${{env.msbuild_platform}}\${{matrix.buildtype}}\*.lib ${{env.prefix_path_backslash}}\lib\
+          copy output\${{env.msbuild_platform}}\${{matrix.buildtype}}\*.dll ${{env.prefix_path_backslash}}\bin\
 
+      - name: Copy libiconv (debug)
+        if: matrix.buildtype == 'debug'
+        shell: bash
+        run: cp ${{env.prefix_path_unix}}/lib/libiconvD.lib ${{env.prefix_path_unix}}/lib/libiconv.lib
 
       - name: Download file
         shell: bash
