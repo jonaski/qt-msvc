@@ -606,10 +606,7 @@ jobs:
       - name: Download libiconv
         shell: cmd
         working-directory: sources
-        run: |
-          git clone https://github.com/pffang/libiconv-for-Windows
-          cd libiconv-for-Windows
-          git checkout 9b7aba8da6e125ef33912fa4412779279f204003
+        run: git clone https://github.com/pffang/libiconv-for-Windows
 
       - name: Build libiconv
         shell: cmd
