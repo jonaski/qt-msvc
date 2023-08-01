@@ -758,9 +758,6 @@ jobs:
         shell: cmd
         env:
           CL: "/MP"
-          CFLAGS: -I${{env.prefix_path_backslash}}\include
-          CXXFLAGS: -I${{env.prefix_path_backslash}}\include
-          LDFLAGS: -L${{env.prefix_path_backslash}}\lib
         working-directory: sources/glib-${{env.glib_version}}/build
         run: ninja
 
@@ -1000,8 +997,6 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
-          CFLAGS: -I${{env.prefix_path_forwardslash}}/include
-          LDFLAGS: -L${{env.prefix_path_forwardslash}}/lib
         working-directory: sources/qtbase-everywhere-src-${{env.qt_version}}
         run: >
           cmake -S . -B build
@@ -1081,8 +1076,6 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
-          CFLAGS: -I${{env.prefix_path_forwardslash}}/include
-          LDFLAGS: -L${{env.prefix_path_forwardslash}}/lib
         working-directory: sources/qttools-everywhere-src-${{env.qt_version}}
         run: |
           mkdir build
@@ -1118,8 +1111,6 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
-          CFLAGS: -I${{env.prefix_path_forwardslash}}/include
-          LDFLAGS: -L${{env.prefix_path_forwardslash}}/lib
         working-directory: sources/qt5compat-everywhere-src-${{env.qt_version}}
         run: |
           mkdir build
@@ -1155,8 +1146,6 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
-          CFLAGS: -I${{env.prefix_path_forwardslash}}/include
-          LDFLAGS: -L${{env.prefix_path_forwardslash}}/lib
         working-directory: sources/qtactiveqt-everywhere-src-${{env.qt_version}}
         run: |
           mkdir build
@@ -1197,8 +1186,6 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
-          CFLAGS: -I${{env.prefix_path_forwardslash}}/include
-          LDFLAGS: -L${{env.prefix_path_forwardslash}}/lib
         working-directory: sources/quazip-${{env.quazip_version}}
         run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DQUAZIP_QT_MAJOR_VERSION=6 -DBUILD_SHARED_LIBS=ON -DCMAKE_PREFIX_PATH="${{env.prefix_path_backslash}}\lib\cmake" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}"
 
