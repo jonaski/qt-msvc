@@ -606,7 +606,10 @@ jobs:
       - name: Download libiconv
         shell: cmd
         working-directory: sources
-        run: git clone https://github.com/pffang/libiconv-for-Windows
+        run: |
+          git clone https://github.com/pffang/libiconv-for-Windows
+          cd libiconv-for-Windows
+          git checkout 9b7aba8da6e125ef33912fa4412779279f204003
 
       - name: Build libiconv
         shell: cmd
@@ -620,13 +623,9 @@ jobs:
         working-directory: sources/libiconv-for-Windows
         run: |
           copy include\*.h ${{env.prefix_path_backslash}}\include\
-          copy output\${{env.msbuild_platform}}\${{matrix.buildtype}}\*.lib ${{env.prefix_path_backslash}}\lib\
-          copy output\${{env.msbuild_platform}}\${{matrix.buildtype}}\*.dll ${{env.prefix_path_backslash}}\bin\
+          copy ${{env.libdir}}\*.lib ${{env.prefix_path_backslash}}\lib\
+          copy ${{env.libdir}}\*.dll ${{env.prefix_path_backslash}}\bin\
 
-      - name: Copy libiconv (debug)
-        if: matrix.buildtype == 'debug'
-        shell: bash
-        run: cp ${{env.prefix_path_unix}}/lib/libiconvD.lib ${{env.prefix_path_unix}}/lib/libiconv.lib
 
       - name: Download file
         shell: bash
@@ -666,30 +665,6 @@ jobs:
           copy ..\file\src\magic.h ${{env.prefix_path_backslash}}\include\
           mkdir ${{env.prefix_path_backslash}}\share\magic
           copy magic.mgc ${{env.prefix_path_backslash}}\share\magic\
-
-
-      - name: Download libiconv
-        shell: cmd
-        working-directory: sources
-        run: |
-          git clone https://github.com/pffang/libiconv-for-Windows
-          cd libiconv-for-Windows
-          git checkout 9b7aba8da6e125ef33912fa4412779279f204003
-
-      - name: Build libiconv
-        shell: cmd
-        env:
-          CL: "/MP"
-        working-directory: sources/libiconv-for-Windows
-        run: msbuild libiconv.sln /property:Configuration=${{matrix.buildtype}}
-
-      - name: Install libiconv
-        shell: cmd
-        working-directory: sources/libiconv-for-Windows
-        run: |
-          copy include\*.h ${{env.prefix_path_backslash}}\include\
-          copy ${{env.libdir}}\*.lib ${{env.prefix_path_backslash}}\lib\
-          copy ${{env.libdir}}\*.dll ${{env.prefix_path_backslash}}\bin\
 
 
       - name: Download SQLite
