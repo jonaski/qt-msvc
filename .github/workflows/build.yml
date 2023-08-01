@@ -638,11 +638,6 @@ jobs:
           cd file
           git checkout FILE${{env.file_version_underscore}}
 
-      - name: Patch file
-        shell: bash
-        working-directory: sources/file-windows/file
-        run: patch -p1 < ../../../patches/file-msvc.patch
-
       - name: Configure file
         env:
           CL: "/MP"
