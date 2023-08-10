@@ -9,9 +9,9 @@ env:
 
   win_flex_bison_version: '2.5.25'
 
-  boost_version: '1.82.0'
-
   pkgconf_version: '2.0.0'
+
+  mimalloc_version: '2.1.2'
 
   zlib_version: '1.2.13'
 
@@ -29,15 +29,17 @@ env:
 
   brotli_version: '1.0.9'
 
+  icu4c_version: '73.2'
+
+  boost_version: '1.82.0'
+
+  expat_version: '2.5.0'
+
   file_version: '5.44'
 
   sqlite3_version: '3420000'
 
   glib_version: '2.77.1'
-
-  icu4c_version: '73.2'
-
-  expat_version: '2.5.0'
 
   freetype_version: '2.13.1'
 
@@ -221,22 +223,6 @@ jobs:
         run: echo "c:\win_flex_bison" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
 
-      - name: Download Boost
-        shell: bash
-        working-directory: downloads
-        run: curl ${{env.curl_options}} https://boostorg.jfrog.io/artifactory/main/release/${{env.boost_version}}/source/boost_${{env.boost_version_underscore}}.tar.bz2
-
-      - name: Extract Boost
-        shell: bash
-        working-directory: sources
-        run: tar -xf  ../downloads/boost_${{env.boost_version_underscore}}.tar.bz2
-
-      - name: Copy Boost
-        shell: bash
-        working-directory: sources
-        run: cp -r boost_${{env.boost_version_underscore}}/boost ${{env.prefix_path_unix}}/include/
-
-
       - name: Download pkgconf
         shell: bash
         working-directory: downloads
@@ -269,6 +255,38 @@ jobs:
       - name: Copy pkgconf
         shell: cmd
         run: copy ${{env.prefix_path_backslash}}\bin\pkgconf.exe ${{env.prefix_path_backslash}}\bin\pkg-config.exe
+
+
+      - name: Download mimalloc
+        shell: bash
+        working-directory: downloads
+        run: curl -o mimalloc-${{env.mimalloc_version}}.tar.gz ${{env.curl_options}} https://github.com/microsoft/mimalloc/archive/refs/tags/v${{env.mimalloc_version}}.tar.gz
+
+      - name: Extract mimalloc
+        shell: bash
+        working-directory: sources
+        run: tar -xf ../downloads/mimalloc-${{env.mimalloc_version}}.tar.gz
+
+      - name: Configure mimalloc
+        shell: cmd
+        env:
+          CL: "/MP"
+          PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
+          PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
+        working-directory: sources/mimalloc-${{env.mimalloc_version}}
+        run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}"
+
+      - name: Build mimalloc
+        shell: cmd
+        env:
+          CL: "/MP"
+        working-directory: sources/mimalloc-${{env.mimalloc_version}}/build
+        run: cmake --build .
+
+      - name: Install mimalloc
+        shell: cmd
+        working-directory: sources/mimalloc-${{env.mimalloc_version}}/build
+        run: cmake --install .
 
 
       - name: Download yasm
@@ -628,6 +646,95 @@ jobs:
         shell: bash
         run: cp ${{env.prefix_path_unix}}/lib/libiconvD.lib ${{env.prefix_path_unix}}/lib/libiconv.lib
 
+
+      - name: Download icu
+        shell: bash
+        working-directory: downloads
+        run: curl ${{env.curl_options}} https://github.com/unicode-org/icu/releases/download/release-${{env.icu4c_version_dash}}/icu4c-${{env.icu4c_version_underscore}}-src.zip
+
+      - name: Extract icu
+        shell: bash
+        working-directory: sources
+        run: 7z x ../downloads/icu4c-${{env.icu4c_version_underscore}}-src.zip
+
+      - name: Patch icu
+        shell: bash
+        working-directory: sources/icu
+        run: patch -p1 < ../../patches/icu-uwp.patch
+
+      - name: Build icu
+        shell: cmd
+        env:
+          CL: "/MP"
+        working-directory: sources/icu/source/allinone
+        run: msbuild allinone.sln /property:Configuration=${{matrix.buildtype}} /p:platform=${{env.msbuild_platform}}
+
+      - name: Install icu
+        shell: bash
+        working-directory: sources/icu
+        run: |
+          cp -r include/unicode ${{env.prefix_path_unix}}/include/
+          cp ${{env.libdir}}/{*.lib,*.pdb,*.exp} ${{env.prefix_path_unix}}/lib/
+          cp ${{env.bindir}}/{*.dll,*.exe} ${{env.prefix_path_unix}}/bin/
+
+
+      - name: Download Boost
+        shell: bash
+        working-directory: downloads
+        run: curl ${{env.curl_options}} https://boostorg.jfrog.io/artifactory/main/release/${{env.boost_version}}/source/boost_${{env.boost_version_underscore}}.tar.bz2
+
+      - name: Extract Boost
+        shell: bash
+        working-directory: sources
+        run: tar -xf  ../downloads/boost_${{env.boost_version_underscore}}.tar.bz2
+
+      - name: Configure Boost
+        shell: cmd
+        env:
+          CL: "/MP"
+        working-directory: sources/boost_${{env.boost_version_underscore}}
+        run: bootstrap.bat
+
+      - name: Build and install Boost
+        shell: cmd
+        env:
+          CL: "/MP"
+        working-directory: sources/boost_${{env.boost_version_underscore}}
+        run: b2.exe -a -q -j 4 -d1 --ignore-site-config --stagedir="stage" --layout="tagged" --without-mpi --without-python --prefix="${{env.prefix_path}}" --exec-prefix="${{env.prefix_path}}\bin" --libdir="${{env.prefix_path}}\lib" --includedir="${{env.prefix_path}}\include" toolset=msvc architecture=x86 link=shared runtime-link=shared threadapi=win32 threading=multi variant=${{matrix.buildtype}} install || goto end
+
+
+      - name: Download expat
+        shell: bash
+        working-directory: downloads
+        run: curl ${{env.curl_options}} https://${{env.sourceforge_mirror}}/project/expat/expat/${{env.expat_version}}/expat-${{env.expat_version}}.tar.bz2
+
+      - name: Extract expat
+        shell: bash
+        working-directory: sources
+        run: tar -xf ../downloads/expat-${{env.expat_version}}.tar.bz2
+
+      - name: Configure expat
+        shell: cmd
+        env:
+          CL: "/MP"
+          PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
+          PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
+        working-directory: sources/expat-${{env.expat_version}}
+        run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}" -DEXPAT_SHARED_LIBS=ON -DEXPAT_BUILD_DOCS=OFF -DEXPAT_BUILD_EXAMPLES=OFF -DEXPAT_BUILD_FUZZERS=OFF -DEXPAT_BUILD_TESTS=OFF -DEXPAT_BUILD_TOOLS=OFF -DEXPAT_BUILD_PKGCONFIG=ON
+
+      - name: Build expat
+        shell: cmd
+        env:
+          CL: "/MP"
+        working-directory: sources/expat-${{env.expat_version}}/build
+        run: cmake --build .
+
+      - name: Install expat
+        shell: cmd
+        working-directory: sources/expat-${{env.expat_version}}/build
+        run: cmake --install .
+
+
       - name: Download file
         shell: bash
         working-directory: sources
@@ -741,69 +848,6 @@ jobs:
         shell: cmd
         working-directory: sources/glib-${{env.glib_version}}/build
         run: ninja install
-
-
-      - name: Download icu
-        shell: bash
-        working-directory: downloads
-        run: curl ${{env.curl_options}} https://github.com/unicode-org/icu/releases/download/release-${{env.icu4c_version_dash}}/icu4c-${{env.icu4c_version_underscore}}-src.zip
-
-      - name: Extract icu
-        shell: bash
-        working-directory: sources
-        run: 7z x ../downloads/icu4c-${{env.icu4c_version_underscore}}-src.zip
-
-      - name: Patch icu
-        shell: bash
-        working-directory: sources/icu
-        run: patch -p1 < ../../patches/icu-uwp.patch
-
-      - name: Build icu
-        shell: cmd
-        env:
-          CL: "/MP"
-        working-directory: sources/icu/source/allinone
-        run: msbuild allinone.sln /property:Configuration=${{matrix.buildtype}} /p:platform=${{env.msbuild_platform}}
-
-      - name: Install icu
-        shell: bash
-        working-directory: sources/icu
-        run: |
-          cp -r include/unicode ${{env.prefix_path_unix}}/include/
-          cp ${{env.libdir}}/{*.lib,*.pdb,*.exp} ${{env.prefix_path_unix}}/lib/
-          cp ${{env.bindir}}/{*.dll,*.exe} ${{env.prefix_path_unix}}/bin/
-
-
-      - name: Download expat
-        shell: bash
-        working-directory: downloads
-        run: curl ${{env.curl_options}} https://${{env.sourceforge_mirror}}/project/expat/expat/${{env.expat_version}}/expat-${{env.expat_version}}.tar.bz2
-
-      - name: Extract expat
-        shell: bash
-        working-directory: sources
-        run: tar -xf ../downloads/expat-${{env.expat_version}}.tar.bz2
-
-      - name: Configure expat
-        shell: cmd
-        env:
-          CL: "/MP"
-          PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
-          PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
-        working-directory: sources/expat-${{env.expat_version}}
-        run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}" -DEXPAT_SHARED_LIBS=ON -DEXPAT_BUILD_DOCS=OFF -DEXPAT_BUILD_EXAMPLES=OFF -DEXPAT_BUILD_FUZZERS=OFF -DEXPAT_BUILD_TESTS=OFF -DEXPAT_BUILD_TOOLS=OFF -DEXPAT_BUILD_PKGCONFIG=ON
-
-      - name: Build expat
-        shell: cmd
-        env:
-          CL: "/MP"
-        working-directory: sources/expat-${{env.expat_version}}/build
-        run: cmake --build .
-
-      - name: Install expat
-        shell: cmd
-        working-directory: sources/expat-${{env.expat_version}}/build
-        run: cmake --install .
 
 
       - name: Download freetype
@@ -1240,8 +1284,8 @@ jobs:
           echo "" >> "${{env.release_notes_file}}"
           echo "Libraries:" >> "${{env.release_notes_file}}"
           echo "" >> "${{env.release_notes_file}}"
-          echo "* Boost ${{env.boost_version}}" >> "${{env.release_notes_file}}"
           echo "* pkgconf ${{env.pkgconf_version}}" >> "${{env.release_notes_file}}"
+          echo "* mimalloc ${{env.mimalloc_version}}" >> "${{env.release_notes_file}}"
           echo "* zlib ${{env.zlib_version}}" >> "${{env.release_notes_file}}"
           echo "* OpenSSL ${{env.openssl_version}}" >> "${{env.release_notes_file}}"
           echo "* libng ${{env.libpng_version}}" >> "${{env.release_notes_file}}"
@@ -1250,17 +1294,18 @@ jobs:
           echo "* bzip2 ${{env.bzip2_version}}" >> "${{env.release_notes_file}}"
           echo "* xz ${{env.xz_version}}" >> "${{env.release_notes_file}}"
           echo "* Brotli ${{env.brotli_version}}" >> "${{env.release_notes_file}}"
+          echo "* ICU4C ${{env.icu4c_version}}" >> "${{env.release_notes_file}}"
+          echo "* Boost ${{env.boost_version}}" >> "${{env.release_notes_file}}"
+          echo "* Expat ${{env.expat_version}}" >> "${{env.release_notes_file}}"
           echo "* File (libmagic) ${{env.file_version}}" >> "${{env.release_notes_file}}"
           echo "* SQLite ${{env.sqlite3_version}}" >> "${{env.release_notes_file}}"
           echo "* GLib ${{env.glib_version}}" >> "${{env.release_notes_file}}"
           echo "* GLib Networking ${{env.glib_networking_version}}" >> "${{env.release_notes_file}}"
-          echo "* ICU4C ${{env.icu4c_version}}" >> "${{env.release_notes_file}}"
-          echo "* Expat ${{env.expat_version}}" >> "${{env.release_notes_file}}"
           echo "* FreeType ${{env.freetype_version}}" >> "${{env.release_notes_file}}"
           echo "* Harfbuzz ${{env.harfbuzz_version}}" >> "${{env.release_notes_file}}"
+          echo "* mariadbclient ${{env.mariadbclient_version}}" >> "${{env.release_notes_file}}"
           echo "* Qt ${{env.qt_version}}" >> "${{env.release_notes_file}}"
           echo "* QuaZip ${{env.quazip_version}}" >> "${{env.release_notes_file}}"
-          echo "* mariadbclient ${{env.mariadbclient_version}}" >> "${{env.release_notes_file}}"
 
       - name: Create Release
         env:
