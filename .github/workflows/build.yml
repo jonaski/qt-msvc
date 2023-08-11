@@ -31,9 +31,9 @@ env:
 
   icu4c_version: '73.2'
 
-  boost_version: '1.83.0'
-
   expat_version: '2.5.0'
+
+  boost_version: '1.83.0'
 
   file_version: '5.44'
 
@@ -678,31 +678,6 @@ jobs:
           cp ${{env.bindir}}/{*.dll,*.exe} ${{env.prefix_path_unix}}/bin/
 
 
-      - name: Download Boost
-        shell: bash
-        working-directory: downloads
-        run: curl ${{env.curl_options}} https://boostorg.jfrog.io/artifactory/main/release/${{env.boost_version}}/source/boost_${{env.boost_version_underscore}}.tar.bz2
-
-      - name: Extract Boost
-        shell: bash
-        working-directory: sources
-        run: tar -xf  ../downloads/boost_${{env.boost_version_underscore}}.tar.bz2
-
-      - name: Configure Boost
-        shell: cmd
-        env:
-          CL: "/MP"
-        working-directory: sources/boost_${{env.boost_version_underscore}}
-        run: bootstrap.bat
-
-      - name: Build and install Boost
-        shell: cmd
-        env:
-          CL: "/MP"
-        working-directory: sources/boost_${{env.boost_version_underscore}}
-        run: b2.exe -a -q -j 4 -d1 --ignore-site-config --stagedir="stage" --layout="tagged" --without-mpi --without-python --prefix="${{env.prefix_path}}" --exec-prefix="${{env.prefix_path}}\bin" --libdir="${{env.prefix_path}}\lib" --includedir="${{env.prefix_path}}\include" toolset=msvc architecture=x86 link=shared runtime-link=shared threadapi=win32 threading=multi variant=${{matrix.buildtype}} install || goto end
-
-
       - name: Download expat
         shell: bash
         working-directory: downloads
@@ -733,6 +708,31 @@ jobs:
         shell: cmd
         working-directory: sources/expat-${{env.expat_version}}/build
         run: cmake --install .
+
+
+      - name: Download Boost
+        shell: bash
+        working-directory: downloads
+        run: curl ${{env.curl_options}} https://boostorg.jfrog.io/artifactory/main/release/${{env.boost_version}}/source/boost_${{env.boost_version_underscore}}.tar.bz2
+
+      - name: Extract Boost
+        shell: bash
+        working-directory: sources
+        run: tar -xf  ../downloads/boost_${{env.boost_version_underscore}}.tar.bz2
+
+      - name: Configure Boost
+        shell: cmd
+        env:
+          CL: "/MP"
+        working-directory: sources/boost_${{env.boost_version_underscore}}
+        run: bootstrap.bat
+
+      - name: Build and install Boost
+        shell: cmd
+        env:
+          CL: "/MP"
+        working-directory: sources/boost_${{env.boost_version_underscore}}
+        run: b2.exe -a -q -j 4 -d1 --ignore-site-config --stagedir="stage" --layout="tagged" --without-mpi --without-python --prefix="${{env.prefix_path}}" --exec-prefix="${{env.prefix_path}}\bin" --libdir="${{env.prefix_path}}\lib" --includedir="${{env.prefix_path}}\include" toolset=msvc architecture=x86 link=shared runtime-link=shared threadapi=win32 threading=multi variant=${{matrix.buildtype}} install || goto end
 
 
       - name: Download file
