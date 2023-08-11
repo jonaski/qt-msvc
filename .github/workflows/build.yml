@@ -126,13 +126,13 @@ jobs:
         shell: cmd
         run: choco install wget
 
-      - name: Create sources directory
-        shell: cmd
-        run: mkdir sources
-
       - name: Create downloads directory
         shell: cmd
         run: mkdir downloads
+
+      - name: Create build directory
+        shell: cmd
+        run: mkdir build
 
       - name: Create directories
         shell: bash
@@ -230,26 +230,26 @@ jobs:
 
       - name: Extract pkgconf
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: tar -xf ../downloads/pkgconf-${{env.pkgconf_version}}.tar.gz
 
       - name: Configure pkgconf
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/pkgconf-pkgconf-${{env.pkgconf_version}}
+        working-directory: build/pkgconf-pkgconf-${{env.pkgconf_version}}
         run: meson --buildtype=${{matrix.buildtype}} --prefix=${{env.prefix_path_backslash}} --wrap-mode=nodownload -Dtests=disabled build
 
       - name: Build pkgconf
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/pkgconf-pkgconf-${{env.pkgconf_version}}/build
+        working-directory: build/pkgconf-pkgconf-${{env.pkgconf_version}}/build
         run: ninja
 
       - name: Install pkgconf
         shell: cmd
-        working-directory: sources/pkgconf-pkgconf-${{env.pkgconf_version}}/build
+        working-directory: build/pkgconf-pkgconf-${{env.pkgconf_version}}/build
         run: ninja install
 
       - name: Copy pkgconf
@@ -264,7 +264,7 @@ jobs:
 
       - name: Extract mimalloc
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: tar -xf ../downloads/mimalloc-${{env.mimalloc_version}}.tar.gz
 
       - name: Configure mimalloc
@@ -273,19 +273,19 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
-        working-directory: sources/mimalloc-${{env.mimalloc_version}}
+        working-directory: build/mimalloc-${{env.mimalloc_version}}
         run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}"
 
       - name: Build mimalloc
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/mimalloc-${{env.mimalloc_version}}/build
+        working-directory: build/mimalloc-${{env.mimalloc_version}}/build
         run: cmake --build .
 
       - name: Install mimalloc
         shell: cmd
-        working-directory: sources/mimalloc-${{env.mimalloc_version}}/build
+        working-directory: build/mimalloc-${{env.mimalloc_version}}/build
         run: cmake --install .
 
 
@@ -296,7 +296,7 @@ jobs:
 
       - name: Extract yasm
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: tar -xf ../downloads/yasm-${{env.yasm_version}}.tar.gz
 
       - name: Configure yasm
@@ -305,19 +305,19 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
-        working-directory: sources/yasm-${{env.yasm_version}}
+        working-directory: build/yasm-${{env.yasm_version}}
         run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}"
 
       - name: Build yasm
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/yasm-${{env.yasm_version}}/build
+        working-directory: build/yasm-${{env.yasm_version}}/build
         run: cmake --build .
 
       - name: Install yasm
         shell: cmd
-        working-directory: sources/yasm-${{env.yasm_version}}/build
+        working-directory: build/yasm-${{env.yasm_version}}/build
         run: cmake --install .
 
 
@@ -328,7 +328,7 @@ jobs:
 
       - name: Extract zlib
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: tar -xf ../downloads/zlib-${{env.zlib_version}}.tar.gz
 
       - name: Configure zlib
@@ -337,19 +337,19 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
-        working-directory: sources/zlib-${{env.zlib_version}}
+        working-directory: build/zlib-${{env.zlib_version}}
         run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}"
 
       - name: Build zlib
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/zlib-${{env.zlib_version}}/build
+        working-directory: build/zlib-${{env.zlib_version}}/build
         run: cmake --build .
 
       - name: Install zlib
         shell: cmd
-        working-directory: sources/zlib-${{env.zlib_version}}/build
+        working-directory: build/zlib-${{env.zlib_version}}/build
         run: cmake --install .
 
       - name: Copy zlib (release)
@@ -372,7 +372,7 @@ jobs:
 
       - name: Extract openssl
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: tar -xf ../downloads/openssl-${{env.openssl_version}}.tar.gz
 
       - name: Configure openssl (release)
@@ -382,7 +382,7 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
-        working-directory: sources/openssl-${{env.openssl_version}}
+        working-directory: build/openssl-${{env.openssl_version}}
         run: perl Configure ${{env.openssl_platform}} shared zlib no-capieng no-tests --prefix=${{env.prefix_path_backslash}} --libdir=lib --openssldir=${{env.prefix_path_backslash}}\ssl --release --with-zlib-include=${{env.prefix_path_backslash}}\include --with-zlib-lib=${{env.prefix_path_backslash}}\lib\zlib.lib
 
       - name: Configure openssl (debug)
@@ -392,19 +392,19 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
-        working-directory: sources/openssl-${{env.openssl_version}}
+        working-directory: build/openssl-${{env.openssl_version}}
         run: perl Configure ${{env.openssl_platform}} shared zlib no-capieng no-tests --prefix=${{env.prefix_path_backslash}} --libdir=lib --openssldir=${{env.prefix_path_backslash}}\ssl --debug --with-zlib-include=${{env.prefix_path_backslash}}\include --with-zlib-lib=${{env.prefix_path_backslash}}\lib\zlibd.lib
 
       - name: Build openssl
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/openssl-${{env.openssl_version}}
+        working-directory: build/openssl-${{env.openssl_version}}
         run: nmake
 
       - name: Install openssl
         shell: cmd
-        working-directory: sources/openssl-${{env.openssl_version}}
+        working-directory: build/openssl-${{env.openssl_version}}
         run: nmake install_sw
 
 
@@ -415,12 +415,12 @@ jobs:
 
       - name: Extract libpng
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: tar -xf ../downloads/libpng-${{env.libpng_version}}.tar.xz
 
       - name: Patch libpng
         shell: bash
-        working-directory: sources/libpng-${{env.libpng_version}}
+        working-directory: build/libpng-${{env.libpng_version}}
         run: patch -p1 < ../../patches/libpng-pkgconf.patch
 
       - name: Configure libpng
@@ -429,19 +429,19 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
-        working-directory: sources/libpng-${{env.libpng_version}}
+        working-directory: build/libpng-${{env.libpng_version}}
         run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}"
 
       - name: Build libpng
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/libpng-${{env.libpng_version}}/build
+        working-directory: build/libpng-${{env.libpng_version}}/build
         run: cmake --build .
 
       - name: Install libpng
         shell: cmd
-        working-directory: sources/libpng-${{env.libpng_version}}/build
+        working-directory: build/libpng-${{env.libpng_version}}/build
         run: cmake --install .
 
 
@@ -452,26 +452,26 @@ jobs:
 
       - name: Extract libjpeg-turbo
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: tar -xf ../downloads/libjpeg-turbo-${{env.libjpeg_turbo_version}}.tar.gz
 
       - name: Configure libjpeg-turbo
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/libjpeg-turbo-${{env.libjpeg_turbo_version}}
+        working-directory: build/libjpeg-turbo-${{env.libjpeg_turbo_version}}
         run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G Ninja -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}" -DBUILD_SHARED_LIBS=ON -DENABLE_SHARED=ON
 
       - name: Build libjpeg-turbo
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/libjpeg-turbo-${{env.libjpeg_turbo_version}}/build
+        working-directory: build/libjpeg-turbo-${{env.libjpeg_turbo_version}}/build
         run: cmake --build .
 
       - name: Install libjpeg-turbo
         shell: cmd
-        working-directory: sources/libjpeg-turbo-${{env.libjpeg_turbo_version}}/build
+        working-directory: build/libjpeg-turbo-${{env.libjpeg_turbo_version}}/build
         run: cmake --install .
 
 
@@ -482,7 +482,7 @@ jobs:
 
       - name: Extract pcre2
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: tar -xf ../downloads/pcre2-${{env.pcre2_version}}.tar.bz2
 
       - name: Configure pcre2
@@ -491,19 +491,19 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
-        working-directory: sources/pcre2-${{env.pcre2_version}}
+        working-directory: build/pcre2-${{env.pcre2_version}}
         run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}" -DBUILD_SHARED_LIBS=ON -DBUILD_STATIC_LIBS=OFF -DPCRE2_SUPPORT_UNICODE=ON -DPCRE2_BUILD_PCRE2_8=ON -DPCRE2_BUILD_PCRE2_16=ON -DPCRE2_BUILD_PCRE2_32=ON -DPCRE2_SUPPORT_UNICODE=ON -DPCRE2_BUILD_TESTS=OFF
 
       - name: Build pcre2
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/pcre2-${{env.pcre2_version}}/build
+        working-directory: build/pcre2-${{env.pcre2_version}}/build
         run: cmake --build .
 
       - name: Install pcre2
         shell: cmd
-        working-directory: sources/pcre2-${{env.pcre2_version}}/build
+        working-directory: build/pcre2-${{env.pcre2_version}}/build
         run: cmake --install .
 
       - name: copy pcre2 lib (debug)
@@ -519,12 +519,12 @@ jobs:
 
       - name: Extract bzip2
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: tar -xf ../downloads/bzip2-${{env.bzip2_version}}.tar.gz
 
       - name: Patch bzip2
         shell: bash
-        working-directory: sources/bzip2-${{env.bzip2_version}}
+        working-directory: build/bzip2-${{env.bzip2_version}}
         run: patch -p1 < ../../patches/bzip2-cmake.patch
 
       - name: Configure bzip2
@@ -533,19 +533,19 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
-        working-directory: sources/bzip2-${{env.bzip2_version}}
+        working-directory: build/bzip2-${{env.bzip2_version}}
         run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}"
 
       - name: Build bzip2
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/bzip2-${{env.bzip2_version}}/build
+        working-directory: build/bzip2-${{env.bzip2_version}}/build
         run: cmake --build .
 
       - name: Install bzip2
         shell: cmd
-        working-directory: sources/bzip2-${{env.bzip2_version}}/build
+        working-directory: build/bzip2-${{env.bzip2_version}}/build
         run: cmake --install .
 
 
@@ -556,26 +556,26 @@ jobs:
 
       - name: Extract xz
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: tar -xf ../downloads/xz-${{env.xz_version}}.tar.xz
 
       - name: Upgrade xz project
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/xz-${{env.xz_version}}/windows/vs2019
+        working-directory: build/xz-${{env.xz_version}}/windows/vs2019
         run: start /w devenv.exe xz_win.sln /upgrade
 
       - name: Build xz
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/xz-${{env.xz_version}}/windows/vs2019
+        working-directory: build/xz-${{env.xz_version}}/windows/vs2019
         run: msbuild xz_win.sln /property:Configuration=${{matrix.buildtype}} /p:platform=${{env.msbuild_platform}}
 
       - name: Install xz
         shell: cmd
-        working-directory: sources/xz-${{env.xz_version}}/windows/vs2019
+        working-directory: build/xz-${{env.xz_version}}/windows/vs2019
         run: |
           copy ${{matrix.buildtype}}\${{env.msbuild_platform}}\liblzma_dll\*.lib ${{env.prefix_path_backslash}}\lib\
           copy ${{matrix.buildtype}}\${{env.msbuild_platform}}\liblzma_dll\*.dll ${{env.prefix_path_backslash}}\bin\
@@ -591,12 +591,12 @@ jobs:
 
       - name: Extract brotli
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: tar -xf ../downloads/v${{env.brotli_version}}.tar.gz
 
       - name: Patch brotli
         shell: bash
-        working-directory: sources/brotli-${{env.brotli_version}}
+        working-directory: build/brotli-${{env.brotli_version}}
         run: patch -p1 < ../../patches/brotli-pkgconfig.patch
 
       - name: Configure brotli
@@ -605,37 +605,37 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
-        working-directory: sources/brotli-${{env.brotli_version}}
+        working-directory: build/brotli-${{env.brotli_version}}
         run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build_dir -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}" -DBUILD_TESTING=OFF
 
       - name: Build brotli
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/brotli-${{env.brotli_version}}/build_dir
+        working-directory: build/brotli-${{env.brotli_version}}/build_dir
         run: cmake --build .
 
       - name: Install brotli
         shell: cmd
-        working-directory: sources/brotli-${{env.brotli_version}}/build_dir
+        working-directory: build/brotli-${{env.brotli_version}}/build_dir
         run: cmake --install .
 
 
       - name: Download libiconv
         shell: cmd
-        working-directory: sources
+        working-directory: build
         run: git clone https://github.com/pffang/libiconv-for-Windows
 
       - name: Build libiconv
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/libiconv-for-Windows
+        working-directory: build/libiconv-for-Windows
         run: msbuild libiconv.sln /property:Configuration=${{matrix.buildtype}}
 
       - name: Install libiconv
         shell: cmd
-        working-directory: sources/libiconv-for-Windows
+        working-directory: build/libiconv-for-Windows
         run: |
           copy include\*.h ${{env.prefix_path_backslash}}\include\
           copy output\${{env.msbuild_platform}}\${{matrix.buildtype}}\*.lib ${{env.prefix_path_backslash}}\lib\
@@ -654,24 +654,24 @@ jobs:
 
       - name: Extract icu
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: 7z x ../downloads/icu4c-${{env.icu4c_version_underscore}}-src.zip
 
       - name: Patch icu
         shell: bash
-        working-directory: sources/icu
+        working-directory: build/icu
         run: patch -p1 < ../../patches/icu-uwp.patch
 
       - name: Build icu
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/icu/source/allinone
+        working-directory: build/icu/source/allinone
         run: msbuild allinone.sln /property:Configuration=${{matrix.buildtype}} /p:platform=${{env.msbuild_platform}}
 
       - name: Install icu
         shell: bash
-        working-directory: sources/icu
+        working-directory: build/icu
         run: |
           cp -r include/unicode ${{env.prefix_path_unix}}/include/
           cp ${{env.libdir}}/{*.lib,*.pdb,*.exp} ${{env.prefix_path_unix}}/lib/
@@ -685,7 +685,7 @@ jobs:
 
       - name: Extract expat
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: tar -xf ../downloads/expat-${{env.expat_version}}.tar.bz2
 
       - name: Configure expat
@@ -694,19 +694,19 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
-        working-directory: sources/expat-${{env.expat_version}}
+        working-directory: build/expat-${{env.expat_version}}
         run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}" -DEXPAT_SHARED_LIBS=ON -DEXPAT_BUILD_DOCS=OFF -DEXPAT_BUILD_EXAMPLES=OFF -DEXPAT_BUILD_FUZZERS=OFF -DEXPAT_BUILD_TESTS=OFF -DEXPAT_BUILD_TOOLS=OFF -DEXPAT_BUILD_PKGCONFIG=ON
 
       - name: Build expat
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/expat-${{env.expat_version}}/build
+        working-directory: build/expat-${{env.expat_version}}/build
         run: cmake --build .
 
       - name: Install expat
         shell: cmd
-        working-directory: sources/expat-${{env.expat_version}}/build
+        working-directory: build/expat-${{env.expat_version}}/build
         run: cmake --install .
 
 
@@ -717,27 +717,27 @@ jobs:
 
       - name: Extract Boost
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: tar -xf  ../downloads/boost_${{env.boost_version_underscore}}.tar.bz2
 
       - name: Configure Boost
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/boost_${{env.boost_version_underscore}}
+        working-directory: build/boost_${{env.boost_version_underscore}}
         run: bootstrap.bat
 
       - name: Build and install Boost
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/boost_${{env.boost_version_underscore}}
+        working-directory: build/boost_${{env.boost_version_underscore}}
         run: b2.exe -a -q -j 4 -d1 --ignore-site-config --stagedir="stage" --layout="tagged" --without-mpi --without-python --prefix="${{env.prefix_path}}" --exec-prefix="${{env.prefix_path}}\bin" --libdir="${{env.prefix_path}}\lib" --includedir="${{env.prefix_path}}\include" toolset=msvc architecture=x86 link=shared runtime-link=shared threadapi=win32 threading=multi variant=${{matrix.buildtype}} install || goto end
 
 
       - name: Download file
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: |
           git clone https://github.com/julian-r/file-windows
           cd file-windows
@@ -751,17 +751,17 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
-        working-directory: sources/file-windows
+        working-directory: build/file-windows
         run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}"
 
       - name: Build file
         env:
           CL: "/MP"
-        working-directory: sources/file-windows/build
+        working-directory: build/file-windows/build
         run: cmake --build .
 
       - name: Install file
-        working-directory: sources/file-windows/build
+        working-directory: build/file-windows/build
         run: |
           copy *.lib ${{env.prefix_path_backslash}}\lib\
           copy *.dll ${{env.prefix_path_backslash}}\bin\
@@ -777,21 +777,21 @@ jobs:
 
       - name: Extract SQLite
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: tar -xf ../downloads/sqlite-autoconf-${{env.sqlite3_version}}.tar.gz
 
       - name: Build SQlite
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/sqlite-autoconf-${{env.sqlite3_version}}
+        working-directory: build/sqlite-autoconf-${{env.sqlite3_version}}
         run: |
           cl -DSQLITE_API="__declspec(dllexport)" -DSQLITE_ENABLE_FTS5 -DSQLITE_ENABLE_COLUMN_METADATA sqlite3.c -link -dll -out:sqlite3.dll
           cl shell.c sqlite3.c -Fe:sqlite3.exe
 
       - name: Install SQLite
         shell: cmd
-        working-directory: sources/sqlite-autoconf-${{env.sqlite3_version}}
+        working-directory: build/sqlite-autoconf-${{env.sqlite3_version}}
         run: |
           copy *.h ${{env.prefix_path_backslash}}\include\
           copy *.lib ${{env.prefix_path_backslash}}\lib\
@@ -822,7 +822,7 @@ jobs:
 
       - name: Extract GLib
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: tar -xf ../downloads/glib-${{env.glib_version}}.tar.xz || true
 
       - name: Configure GLib
@@ -834,19 +834,19 @@ jobs:
           CFLAGS: -I${{env.prefix_path_backslash}}\include
           CXXFLAGS: -I${{env.prefix_path_backslash}}\include
           LDFLAGS: -L${{env.prefix_path_backslash}}\lib
-        working-directory: sources/glib-${{env.glib_version}}
+        working-directory: build/glib-${{env.glib_version}}
         run: meson --buildtype=${{matrix.buildtype}} --prefix=${{env.prefix_path_backslash}} --pkg-config-path=${{env.prefix_path_backslash}}\lib\pkgconfig build
 
       - name: Build GLib
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/glib-${{env.glib_version}}/build
+        working-directory: build/glib-${{env.glib_version}}/build
         run: ninja
 
       - name: Install GLib
         shell: cmd
-        working-directory: sources/glib-${{env.glib_version}}/build
+        working-directory: build/glib-${{env.glib_version}}/build
         run: ninja install
 
 
@@ -857,7 +857,7 @@ jobs:
 
       - name: Extract freetype (boostrap)
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: tar -xf ../downloads/freetype-${{env.freetype_version}}.tar.gz
 
       - name: Configure freetype (boostrap)
@@ -866,19 +866,19 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
-        working-directory: sources/freetype-${{env.freetype_version}}
+        working-directory: build/freetype-${{env.freetype_version}}
         run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}" -DBUILD_SHARED_LIBS=ON
 
       - name: Build freetype (boostrap)
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/freetype-${{env.freetype_version}}/build
+        working-directory: build/freetype-${{env.freetype_version}}/build
         run: cmake --build .
 
       - name: Install freetype (boostrap)
         shell: cmd
-        working-directory: sources/freetype-${{env.freetype_version}}/build
+        working-directory: build/freetype-${{env.freetype_version}}/build
         run: cmake --install .
 
       - name: Copy freetype (debug)
@@ -894,7 +894,7 @@ jobs:
 
       - name: Extract harfbuzz
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: tar -xf ../downloads/harfbuzz-${{env.harfbuzz_version}}.tar.xz
 
       - name: Configure harfbuzz
@@ -903,30 +903,30 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
-        working-directory: sources/harfbuzz-${{env.harfbuzz_version}}
+        working-directory: build/harfbuzz-${{env.harfbuzz_version}}
         run: meson --buildtype=${{matrix.buildtype}} --prefix="${{env.prefix_path_backslash}}" --pkg-config-path=${{env.prefix_path_backslash}}\lib\pkgconfig --wrap-mode=nodownload -Dtests=disabled -Ddocs=disabled -Dfreetype=enabled -Dicu=enabled build
 
       - name: Build harfbuzz
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/harfbuzz-${{env.harfbuzz_version}}/build
+        working-directory: build/harfbuzz-${{env.harfbuzz_version}}/build
         run: ninja
 
       - name: Install harfbuzz
         shell: cmd
-        working-directory: sources/harfbuzz-${{env.harfbuzz_version}}/build
+        working-directory: build/harfbuzz-${{env.harfbuzz_version}}/build
         run: ninja install
 
 
       - name: Delete freetype bootstrap
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: rm -rf freetype-${{env.freetype_version}}
 
       - name: Extract freetype
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: tar -xf ../downloads/freetype-${{env.freetype_version}}.tar.gz
 
       - name: Configure freetype
@@ -935,19 +935,19 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
-        working-directory: sources/freetype-${{env.freetype_version}}
+        working-directory: build/freetype-${{env.freetype_version}}
         run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}" -DBUILD_SHARED_LIBS=ON
 
       - name: Build freetype
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/freetype-${{env.freetype_version}}/build
+        working-directory: build/freetype-${{env.freetype_version}}/build
         run: cmake --build .
 
       - name: Install freetype
         shell: cmd
-        working-directory: sources/freetype-${{env.freetype_version}}/build
+        working-directory: build/freetype-${{env.freetype_version}}/build
         run: cmake --install .
 
       - name: Copy freetype (debug)
@@ -963,7 +963,7 @@ jobs:
 
       - name: Extract mariadbclient
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: tar -xf ../downloads/mariadb-connector-c-${{env.mariadbclient_version}}-src.tar.gz
 
       - name: Configure mariadbclient
@@ -972,19 +972,19 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
-        working-directory: sources/mariadb-connector-c-${{env.mariadbclient_version}}-src
+        working-directory: build/mariadb-connector-c-${{env.mariadbclient_version}}-src
         run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}" -DBUILD_SHARED_LIBS=ON -DWITH_SSL=ON -DWITH_UNIT_TESTS=OFF
 
       - name: Build mariadbclient
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/mariadb-connector-c-${{env.mariadbclient_version}}-src/build
+        working-directory: build/mariadb-connector-c-${{env.mariadbclient_version}}-src/build
         run: cmake --build .
 
       - name: Install mariadbclient
         shell: cmd
-        working-directory: sources/mariadb-connector-c-${{env.mariadbclient_version}}-src/build
+        working-directory: build/mariadb-connector-c-${{env.mariadbclient_version}}-src/build
         run: cmake --install . --config ${{matrix.buildtype}}
 
       - name: Copy mariadbclient lib
@@ -999,12 +999,12 @@ jobs:
 
       - name: Extract qtbase
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: tar -xf ../downloads/qtbase-everywhere-src-${{env.qt_version}}.tar.xz
 
       - name: Copy sqlite3
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: cp sqlite-*/sqlite3.{c,h} qtbase-everywhere-src-${{env.qt_version}}/src/3rdparty/sqlite/
 
       - name: Delete harfbuzz.pc
@@ -1017,7 +1017,7 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
-        working-directory: sources/qtbase-everywhere-src-${{env.qt_version}}
+        working-directory: build/qtbase-everywhere-src-${{env.qt_version}}
         run: >
           cmake -S . -B build
           -G Ninja
@@ -1071,12 +1071,12 @@ jobs:
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/qtbase-everywhere-src-${{env.qt_version}}/build
+        working-directory: build/qtbase-everywhere-src-${{env.qt_version}}/build
         run: cmake --build .
 
       - name: Install qtbase
         shell: cmd
-        working-directory: sources/qtbase-everywhere-src-${{env.qt_version}}/build
+        working-directory: build/qtbase-everywhere-src-${{env.qt_version}}/build
         run: cmake --install .
 
 
@@ -1087,7 +1087,7 @@ jobs:
 
       - name: Extract qttools
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: tar -xf ../downloads/qttools-everywhere-src-${{env.qt_version}}.tar.xz
 
       - name: Configure qttools
@@ -1096,7 +1096,7 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
-        working-directory: sources/qttools-everywhere-src-${{env.qt_version}}
+        working-directory: build/qttools-everywhere-src-${{env.qt_version}}
         run: |
           mkdir build
           cd build
@@ -1106,12 +1106,12 @@ jobs:
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/qttools-everywhere-src-${{env.qt_version}}/build
+        working-directory: build/qttools-everywhere-src-${{env.qt_version}}/build
         run: cmake --build .
 
       - name: Install qttools
         shell: cmd
-        working-directory: sources/qttools-everywhere-src-${{env.qt_version}}/build
+        working-directory: build/qttools-everywhere-src-${{env.qt_version}}/build
         run: cmake --install .
 
 
@@ -1122,7 +1122,7 @@ jobs:
 
       - name: Extract qt5compat
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: tar -xf ../downloads/qt5compat-everywhere-src-${{env.qt_version}}.tar.xz
 
       - name: Configure qt5compat
@@ -1131,7 +1131,7 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
-        working-directory: sources/qt5compat-everywhere-src-${{env.qt_version}}
+        working-directory: build/qt5compat-everywhere-src-${{env.qt_version}}
         run: |
           mkdir build
           cd build
@@ -1141,12 +1141,12 @@ jobs:
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/qt5compat-everywhere-src-${{env.qt_version}}/build
+        working-directory: build/qt5compat-everywhere-src-${{env.qt_version}}/build
         run: cmake --build .
 
       - name: Install qt5compat
         shell: cmd
-        working-directory: sources/qt5compat-everywhere-src-${{env.qt_version}}/build
+        working-directory: build/qt5compat-everywhere-src-${{env.qt_version}}/build
         run: cmake --install .
 
 
@@ -1157,7 +1157,7 @@ jobs:
 
       - name: Extract qtactiveqt
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: tar -xf ../downloads/qtactiveqt-everywhere-src-${{env.qt_version}}.tar.xz
 
       - name: Configure qtactiveqt
@@ -1166,7 +1166,7 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
-        working-directory: sources/qtactiveqt-everywhere-src-${{env.qt_version}}
+        working-directory: build/qtactiveqt-everywhere-src-${{env.qt_version}}
         run: |
           mkdir build
           cd build
@@ -1176,12 +1176,12 @@ jobs:
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/qtactiveqt-everywhere-src-${{env.qt_version}}/build
+        working-directory: build/qtactiveqt-everywhere-src-${{env.qt_version}}/build
         run: cmake --build .
 
       - name: Install qtactiveqt
         shell: cmd
-        working-directory: sources/qtactiveqt-everywhere-src-${{env.qt_version}}/build
+        working-directory: build/qtactiveqt-everywhere-src-${{env.qt_version}}/build
         run: cmake --install .
 
 
@@ -1192,12 +1192,12 @@ jobs:
 
       - name: Extract quazip
         shell: bash
-        working-directory: sources
+        working-directory: build
         run: tar -xf ../downloads/v${{env.quazip_version}}.tar.gz
 
       - name: Patch quazip
         shell: bash
-        working-directory: sources/quazip-${{env.quazip_version}}
+        working-directory: build/quazip-${{env.quazip_version}}
         run: patch -p1 < ../../patches/quazip-pkgconfig.patch
 
       - name: Configure quazip
@@ -1206,19 +1206,19 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
-        working-directory: sources/quazip-${{env.quazip_version}}
+        working-directory: build/quazip-${{env.quazip_version}}
         run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{matrix.buildtype}}" -DQUAZIP_QT_MAJOR_VERSION=6 -DBUILD_SHARED_LIBS=ON -DCMAKE_PREFIX_PATH="${{env.prefix_path_backslash}}\lib\cmake" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}"
 
       - name: Build quazip
         shell: cmd
         env:
           CL: "/MP"
-        working-directory: sources/quazip-${{env.quazip_version}}/build
+        working-directory: build/quazip-${{env.quazip_version}}/build
         run: cmake --build .
 
       - name: Install quazip
         shell: cmd
-        working-directory: sources/quazip-${{env.quazip_version}}/build
+        working-directory: build/quazip-${{env.quazip_version}}/build
         run: cmake --install .
 
 
