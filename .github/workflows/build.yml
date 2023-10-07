@@ -1246,11 +1246,17 @@ jobs:
 
   create-release:
     name: Create GitHub Release
-    runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/release'
+    runs-on: ubuntu-latest
     needs:
       - build-windows-msvc
     steps:
+
+      - name: Install packages
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: sudo apt install -y git hub
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
