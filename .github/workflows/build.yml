@@ -43,7 +43,7 @@ env:
 
   freetype_version: '2.13.2'
 
-  harfbuzz_version: '8.2.1'
+  harfbuzz_version: '8.2.2'
 
   mariadbclient_version: '3.3.7'
 
