@@ -39,7 +39,7 @@ env:
 
   sqlite3_version: '3450100'
 
-  glib_version: '2.79.1'
+  glib_version: '2.79.2'
 
   freetype_version: '2.13.2'
 
