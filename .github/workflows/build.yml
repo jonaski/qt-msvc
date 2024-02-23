@@ -1110,9 +1110,12 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
+          CFLAGS: -I${{env.prefix_path_backslash}}\include
+          CXXFLAGS: -I${{env.prefix_path_backslash}}\include
+          LDFLAGS: -L${{env.prefix_path_backslash}}\lib
         working-directory: build/qtbase-everywhere-src-${{env.qt_version}}
         run: >
-          cmake -S . -B build
+          cmake --log-level="${{env.cmake_loglevel}}" -S . -B build
           -G Ninja
           -DCMAKE_BUILD_TYPE="${{env.cmake_buildtype}}"
           -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}"
@@ -1190,11 +1193,31 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
+          CFLAGS: -I${{env.prefix_path_backslash}}\include
+          CXXFLAGS: -I${{env.prefix_path_backslash}}\include
+          LDFLAGS: -L${{env.prefix_path_backslash}}\lib
         working-directory: build/qttools-everywhere-src-${{env.qt_version}}
-        run: |
-          mkdir build
-          cd build
-          ${{env.prefix_path_backslash}}\bin\qt-configure-module.bat .. -feature-linguist -no-feature-assistant -no-feature-designer
+        run: >
+          cmake --log-level="${{env.cmake_loglevel}}" -S . -B build
+          -G Ninja
+          -DCMAKE_BUILD_TYPE="${{env.cmake_buildtype}}"
+          -DCMAKE_PREFIX_PATH="${{env.prefix_path_backslash}}\lib\cmake"
+          -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}"
+          -DBUILD_SHARED_LIBS=ON
+          -DBUILD_STATIC_LIBS=OFF
+          -DQT_BUILD_EXAMPLES=OFF
+          -DQT_BUILD_EXAMPLES_BY_DEFAULT=OFF
+          -DFEATURE_assistant=OFF
+          -DFEATURE_designer=OFF
+          -DFEATURE_distancefieldgenerator=OFF
+          -DFEATURE_kmap2qmap=OFF
+          -DFEATURE_pixeltool=OFF
+          -DFEATURE_qdbus=OFF
+          -DFEATURE_qev=OFF
+          -DFEATURE_qtattributionsscanner=OFF
+          -DFEATURE_qtdiag=OFF
+          -DFEATURE_qtplugininfo=OFF
+          -DFEATURE_linguist=ON
 
       - name: Build qttools
         shell: cmd
@@ -1225,11 +1248,18 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
+          CFLAGS: -I${{env.prefix_path_backslash}}\include
+          CXXFLAGS: -I${{env.prefix_path_backslash}}\include
+          LDFLAGS: -L${{env.prefix_path_backslash}}\lib
         working-directory: build/qt5compat-everywhere-src-${{env.qt_version}}
-        run: |
-          mkdir build
-          cd build
-          ${{env.prefix_path_backslash}}\bin\qt-configure-module.bat ..
+        run: >
+          cmake --log-level="${{env.cmake_loglevel}}" -S . -B build
+          -G Ninja
+          -DCMAKE_BUILD_TYPE="${{env.cmake_buildtype}}"
+          -DCMAKE_PREFIX_PATH="${{env.prefix_path_backslash}}\lib\cmake"
+          -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}"
+          -DBUILD_SHARED_LIBS=ON
+          -DBUILD_STATIC_LIBS=OFF
 
       - name: Build qt5compat
         shell: cmd
@@ -1260,11 +1290,18 @@ jobs:
           CL: "/MP"
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
           PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
+          CFLAGS: -I${{env.prefix_path_backslash}}\include
+          CXXFLAGS: -I${{env.prefix_path_backslash}}\include
+          LDFLAGS: -L${{env.prefix_path_backslash}}\lib
         working-directory: build/qtactiveqt-everywhere-src-${{env.qt_version}}
-        run: |
-          mkdir build
-          cd build
-          ${{env.prefix_path_backslash}}\bin\qt-configure-module.bat ..
+        run: >
+          cmake --log-level="${{env.cmake_loglevel}}" -S . -B build
+          -G Ninja
+          -DCMAKE_BUILD_TYPE="${{env.cmake_buildtype}}"
+          -DCMAKE_PREFIX_PATH="${{env.prefix_path_backslash}}\lib\cmake"
+          -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}"
+          -DBUILD_SHARED_LIBS=ON
+          -DBUILD_STATIC_LIBS=OFF
 
       - name: Build qtactiveqt
         shell: cmd
