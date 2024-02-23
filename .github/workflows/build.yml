@@ -413,6 +413,52 @@ jobs:
         run: nmake install_sw
 
 
+      - name: Copy openssl libs
+        shell: cmd
+        run: |
+          copy ${{env.prefix_path_backslash}}\lib\libssl.lib ${{env.prefix_path_backslash}}\lib\ssl.lib
+          copy ${{env.prefix_path_backslash}}\lib\libcrypto.lib ${{env.prefix_path_backslash}}\lib\crypto.lib
+
+      - name: Generate openssl pc
+        shell: bash
+        run: |
+          echo "prefix=${{env.prefix_path_forwardslash}}" >>${{env.prefix_path_unix}}/lib/pkgconfig/openssl.pc
+          echo "exec_prefix=\${prefix}" >>${{env.prefix_path_unix}}/lib/pkgconfig/openssl.pc
+          echo "libdir=\${exec_prefix}/lib" >>${{env.prefix_path_unix}}/lib/pkgconfig/openssl.pc
+          echo "includedir=\${prefix}/include" >>${{env.prefix_path_unix}}/lib/pkgconfig/openssl.pc
+          echo "" >>${{env.prefix_path_unix}}/lib/pkgconfig/openssl.pc
+          echo "Name: OpenSSL" >>${{env.prefix_path_unix}}/lib/pkgconfig/openssl.pc
+          echo "Description: Secure Sockets Layer and cryptography libraries and tools" >>${{env.prefix_path_unix}}/lib/pkgconfig/openssl.pc
+          echo "Version: ${{env.openssl_version}}" >>${{env.prefix_path_unix}}/lib/pkgconfig/openssl.pc
+          echo "Requires: libssl libcrypto" >>${{env.prefix_path_unix}}/lib/pkgconfig/openssl.pc
+          echo
+          echo "prefix=${{env.prefix_path_forwardslash}}" >>${{env.prefix_path_unix}}/lib/pkgconfig/libcrypto.pc
+          echo "exec_prefix=\${prefix}" >>${{env.prefix_path_unix}}/lib/pkgconfig/libcrypto.pc
+          echo "libdir=\${exec_prefix}/lib" >>${{env.prefix_path_unix}}/lib/pkgconfig/libcrypto.pc
+          echo "includedir=\${prefix}/include" >>${{env.prefix_path_unix}}/lib/pkgconfig/libcrypto.pc
+          echo "enginesdir=\${libdir}/engines-3" >>${{env.prefix_path_unix}}/lib/pkgconfig/libcrypto.pc
+          echo "modulesdir=\${libdir}/ossl-modules" >>${{env.prefix_path_unix}}/lib/pkgconfig/libcrypto.pc
+          echo "" >>${{env.prefix_path_unix}}/lib/pkgconfig/libcrypto.pc
+          echo "Name: OpenSSL-libcrypto" >>${{env.prefix_path_unix}}/lib/pkgconfig/libcrypto.pc
+          echo "Description: OpenSSL cryptography library" >>${{env.prefix_path_unix}}/lib/pkgconfig/libcrypto.pc
+          echo "Version: ${{env.openssl_version}}" >>${{env.prefix_path_unix}}/lib/pkgconfig/libcrypto.pc
+          echo "Libs: -L\${libdir} -lcrypto" >>${{env.prefix_path_unix}}/lib/pkgconfig/libcrypto.pc
+          echo "Libs.private: -lz -ldl -pthread " >>${{env.prefix_path_unix}}/lib/pkgconfig/libcrypto.pc
+          echo "Cflags: -DOPENSSL_LOAD_CONF -I\${includedir}" >>${{env.prefix_path_unix}}/lib/pkgconfig/libcrypto.pc
+          echo
+          echo "prefix=${{env.prefix_path_forwardslash}}" >>${{env.prefix_path_unix}}/lib/pkgconfig/libssl.pc
+          echo "exec_prefix=\${prefix}" >>${{env.prefix_path_unix}}/lib/pkgconfig/libssl.pc
+          echo "libdir=\${exec_prefix}/lib" >>${{env.prefix_path_unix}}/lib/pkgconfig/libssl.pc
+          echo "includedir=\${prefix}/include" >>${{env.prefix_path_unix}}/lib/pkgconfig/libssl.pc
+          echo "" >>${{env.prefix_path_unix}}/lib/pkgconfig/libssl.pc
+          echo "Name: OpenSSL-libssl" >>${{env.prefix_path_unix}}/lib/pkgconfig/libssl.pc
+          echo "Description: Secure Sockets Layer and cryptography libraries and tools" >>${{env.prefix_path_unix}}/lib/pkgconfig/libssl.pc
+          echo "Version: ${{env.openssl_version}}" >>${{env.prefix_path_unix}}/lib/pkgconfig/libssl.pc
+          echo "Requires.private: libcrypto" >>${{env.prefix_path_unix}}/lib/pkgconfig/libssl.pc
+          echo "Libs: -L\${libdir} -lssl" >>${{env.prefix_path_unix}}/lib/pkgconfig/libssl.pc
+          echo "Cflags: -DOPENSSL_LOAD_CONF -I\${includedir}" >>${{env.prefix_path_unix}}/lib/pkgconfig/libssl.pc
+
+
       - name: Download libpng
         shell: bash
         working-directory: downloads
@@ -676,6 +722,42 @@ jobs:
           cp -r include/unicode ${{env.prefix_path_unix}}/include/
           cp ${{env.libdir}}/{*.lib,*.pdb,*.exp} ${{env.prefix_path_unix}}/lib/
           cp ${{env.bindir}}/{*.dll,*.exe} ${{env.prefix_path_unix}}/bin/
+
+      - name: Generate icu pc
+        shell: bash
+        run: |
+          echo "prefix=${{env.prefix_path_forwardslash}}" > ${{env.prefix_path_unix}}/lib/pkgconfig/icu-uc.pc
+          echo "exec_prefix=\${prefix}" >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-uc.pc
+          echo "libdir=\${exec_prefix}/lib" >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-uc.pc
+          echo "includedir=\${prefix}/include" >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-uc.pc
+          echo >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-uc.pc
+          echo "Name: icu-uc" >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-uc.pc
+          echo "Description: International Components for Unicode: Common and Data libraries" >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-uc.pc
+          echo "Version: ${{env.icu4c_version}}" >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-uc.pc
+          echo "Libs: -L\${libdir} -licuuc${{env.lib_postfix}} -licudt" >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-uc.pc
+          echo "Libs.private: -lpthread -lm" >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-uc.pc
+          echo
+          echo "prefix=${{env.prefix_path_forwardslash}}" > ${{env.prefix_path_unix}}/lib/pkgconfig/icu-i18n.pc
+          echo "exec_prefix=\${prefix}" >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-i18n.pc
+          echo "libdir=\${exec_prefix}/lib" >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-i18n.pc
+          echo "includedir=\${prefix}/include" >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-i18n.pc
+          echo >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-i18n.pc
+          echo "Name: icu-i18n" >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-i18n.pc
+          echo "Description: International Components for Unicode: Stream and I/O Library" >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-i18n.pc
+          echo "Version: ${{env.icu4c_version}}" >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-i18n.pc
+          echo "Libs: -licuin${{env.lib_postfix}}" >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-i18n.pc
+          echo "Requires: icu-uc" >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-i18n.pc
+          echo
+          echo "prefix=${{env.prefix_path_forwardslash}}" > ${{env.prefix_path_unix}}/lib/pkgconfig/icu-io.pc
+          echo "exec_prefix=\${prefix}" >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-io.pc
+          echo "libdir=\${exec_prefix}/lib" >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-io.pc
+          echo "includedir=\${prefix}/include" >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-io.pc
+          echo >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-io.pc
+          echo "Name: icu-io" >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-io.pc
+          echo "Description: International Components for Unicode: Stream and I/O Library" >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-io.pc
+          echo "Version: ${{env.icu4c_version}}" >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-io.pc
+          echo "Libs: -licuio${{env.lib_postfix}}" >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-io.pc
+          echo "Requires: icu-i18n" >> ${{env.prefix_path_unix}}/lib/pkgconfig/icu-io.pc
 
 
       - name: Download expat
