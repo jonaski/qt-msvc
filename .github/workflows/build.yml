@@ -1096,10 +1096,6 @@ jobs:
         working-directory: build
         run: cp sqlite-*/sqlite3.{c,h} qtbase-everywhere-src-${{env.qt_version}}/src/3rdparty/sqlite/
 
-      - name: Delete harfbuzz.pc
-        shell: bash
-        run: rm -f "${{env.prefix_path_unix}}/lib/pkgconfig/harfbuzz.pc"
-
       - name: Configure qtbase
         shell: cmd
         env:
