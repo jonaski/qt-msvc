@@ -33,7 +33,7 @@ env:
 
   expat_version: '2.6.4'
 
-  boost_version: '1.86.0'
+  boost_version: '1.87.0'
 
   file_version: '5.44'
 
