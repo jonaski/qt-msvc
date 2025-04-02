@@ -639,12 +639,12 @@ jobs:
       - name: Download brotli
         shell: bash
         working-directory: downloads
-        run: curl ${{env.curl_options}} https://github.com/google/brotli/archive/refs/tags/v${{env.brotli_version}}.tar.gz
+        run: curl ${{env.curl_options}} https://github.com/google/brotli/archive/refs/tags/v${{env.brotli_version}}/brotli-${{env.brotli_version}}.tar.gz
 
       - name: Extract brotli
         shell: bash
         working-directory: build
-        run: tar -xf ../downloads/v${{env.brotli_version}}.tar.gz
+        run: tar -xf ../downloads/brotli-${{env.brotli_version}}.tar.gz
 
       - name: Configure brotli
         shell: cmd
