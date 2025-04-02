@@ -715,9 +715,9 @@ jobs:
         shell: bash
         working-directory: build/icu
         run: |
-          cp -r include/unicode ${{env.prefix_path_unix}}/include/
-          cp ${{env.libdir}}/{*.lib,*.pdb,*.exp} ${{env.prefix_path_unix}}/lib/
-          cp ${{env.bindir}}/{*.dll,*.exe} ${{env.prefix_path_unix}}/bin/
+          cp -v -r include/unicode ${{env.prefix_path_unix}}/include/
+          cp -v ${{env.libdir}}/{*.lib,*.pdb,*.exp} ${{env.prefix_path_unix}}/lib/
+          cp -v ${{env.bindir}}/{*.dll,*.exe} ${{env.prefix_path_unix}}/bin/
 
       - name: Generate icu pc
         shell: bash
