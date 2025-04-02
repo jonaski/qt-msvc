@@ -825,6 +825,7 @@ jobs:
           git checkout FILE${{env.file_version_underscore}}
 
       - name: Configure file
+        shell: cmd
         env:
           CL: -MP
           PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
@@ -833,12 +834,14 @@ jobs:
         run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "NMake Makefiles" -DCMAKE_BUILD_TYPE="${{env.cmake_buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}" -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 
       - name: Build file
+        shell: cmd
         env:
           CL: -MP
         working-directory: build/file-windows/build
         run: cmake --build .
 
       - name: Install file
+        shell: cmd
         working-directory: build/file-windows/build
         run: |
           copy *.lib ${{env.prefix_path_backslash}}\lib\
