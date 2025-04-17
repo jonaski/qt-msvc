@@ -193,7 +193,7 @@ jobs:
       - name: Download nasm
         shell: bash
         working-directory: downloads
-        run: curl ${{env.curl_options}} https://www.nasm.us/pub/nasm/releasebuilds/${{env.nasm_version}}/${{env.arch_win}}/nasm-${{env.nasm_version}}-installer-${{env.arch_short}}.exe
+        run: curl ${{env.curl_options}} https://files.jkvinge.net/install/nasm-${{env.nasm_version}}-installer-${{env.arch_short}}.exe
 
       - name: Create nasm directory
         shell: cmd
@@ -791,7 +791,7 @@ jobs:
       - name: Download Boost
         shell: bash
         working-directory: downloads
-        run: curl ${{env.curl_options}} https://archives.boost.io/release/${{env.boost_version}}/source/boost_${{env.boost_version_underscore}}.tar.gz
+        run: curl ${{env.curl_options}} https://files.jkvinge.net/packages/strawberry-dependencies/boost_${{env.boost_version_underscore}}.tar.gz
 
       - name: Extract Boost
         shell: bash
