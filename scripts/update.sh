@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 #  STRAWBERRY MSVC GITHUB ACTION UPDATE SCRIPT
-#  Copyright (C) 2022 Jonas Kvinge
+#  Copyright (C) 2022-2025 Jonas Kvinge
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -23,6 +23,12 @@ curl_options="-s -f -L"
 function timestamp() { date '+%Y-%m-%d %H:%M:%S'; }
 function status() { echo "[$(timestamp)] $*"; }
 function error() { echo "[$(timestamp)] ERROR: $*" >&2; }
+
+function latest_github_release() {
+
+  curl ${curl_options} -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" -H "Authorization: Bearer ${gh_token}" "https://api.github.com/repos/$1/$2/releases/latest" | jq -r '.tag_name' | sed 's/^v//g' | sed 's/^sparsehash-//g' | sed 's/^faac-//g' | sort -V | head -1
+
+}
 
 function update_repo() {
 
@@ -134,10 +140,10 @@ function update_package() {
       package_version_latest=$(curl ${curl_options} 'https://www.nasm.us/pub/nasm/releasebuilds/?C=M;O=D' | sed -n 's,.*href="\([0-9\.]*[^a-z]\)/".*,\1,p' | sort -V | tail -1)
       ;;
     "yasm")
-      package_version_latest=$(curl ${curl_options} 'https://github.com/yasm/yasm/releases' | sed -n 's,.*releases/tag/\([^"&;]*\)".*,\1,p' | sed 's/^v//g' | sort -V | tail -1)
+      package_version_latest=$(latest_github_release "yasm" "yasm")
       ;;
-    "boost")
-      package_version_latest=$(curl ${curl_options} 'https://www.boost.org/users/download/' | sed -n 's,.*/release/\([0-9][^"/]*\)/.*,\1,p' | grep -v beta | sort -V | tail -1)
+    "win_flex_bison")
+      package_version_latest=$(curl ${curl_options} 'https://sourceforge.net/projects/winflexbison/files/' | sed -n 's,.*<a href=".*files\/win_flex_bison-\(.*\)\.zip\/.*,\1,p' | grep -v 'latest' | sort -V | tail -1)
       ;;
     "pkgconf")
       package_version_latest=$(curl ${curl_options} 'https://github.com/pkgconf/pkgconf/tags' | sed -n 's#.*releases/tag/\([^"]*\).*#\1#p' | sed 's/^pkgconf\-//g' | sort -V | tail -1)
@@ -155,16 +161,25 @@ function update_package() {
       package_version_latest=$(latest_github_release "libjpeg-turbo" "libjpeg-turbo")
       ;;
     "pcre2")
-      package_version_latest=$(curl ${curl_options} 'https://github.com/PhilipHazel/pcre2/releases' | sed -n 's,.*releases/tag/\([^"&;]*\)".*,\1,p' | sed 's/^pcre2\-//g' | grep -iv rc | sort -V | tail -1)
+      package_version_latest=$(latest_github_release "PhilipHazel" "pcre2" | sed 's/^pcre2\-//g' | grep -iv rc | sort -V | tail -1)
       ;;
     "bzip2")
       package_version_latest=$(curl ${curl_options} 'https://sourceware.org/pub/bzip2/' | grep 'bzip2-' | sed -n 's,.*bzip2-\([0-9][^>]*\)\.tar.*,\1,p' | sort -V | tail -1)
       ;;
     "xz")
-      package_version_latest=$(curl ${curl_options} 'https://github.com/tukaani-project/xz/releases' | sed -n 's,.*releases/tag/\([^"&;]*\)".*,\1,p' | sed 's/v//g' | sort -V | tail -1)
+      package_version_latest=$(latest_github_release "tukaani-project" "xz")
       ;;
     "brotli")
-      package_version_latest=$(curl ${curl_options} 'https://github.com/google/brotli/releases' | sed -n 's,.*releases/tag/\([^"&;]*\)".*,\1,p' | sed 's/^v//g' | sort -V | tail -1)
+      package_version_latest=$(latest_github_release "google" "brotli")
+      ;;
+    "icu4c")
+      package_version_latest=$(latest_github_release "unicode-org" "icu" | sed 's/release\-//g' | tr '\-' '\.')
+      ;;
+    "expat")
+      package_version_latest=$(latest_github_release "libexpat" "libexpat" | sed 's/R_//g' | tr '_' '.')
+      ;;
+    "boost")
+      package_version_latest=$(curl ${curl_options} 'https://www.boost.org/users/download/' | sed -n 's,.*/release/\([0-9][^"/]*\)/.*,\1,p' | grep -v beta | sort -V | tail -1)
       ;;
     "sqlite3")
       package_version_latest=$(curl ${curl_options} 'https://www.sqlite.org/download.html' | sed -n 's,.*sqlite-autoconf-\([0-9][^>]*\)\.tar.*,\1,p' | sort -V | tail -1)
@@ -172,27 +187,18 @@ function update_package() {
     "glib")
       package_version_latest=$(curl ${curl_options} 'https://gitlab.gnome.org/GNOME/glib/tags' | sed -n "s,.*<a [^>]\+>v\?\([0-9]\+\.[0-9.]\+\)<.*,\1,p" | sort -V | tail -1)
       ;;
-    "icu4c")
-      package_version_latest=$(curl ${curl_options} 'https://github.com/unicode-org/icu/releases/latest' | sed -n 's,.*releases/tag/\([^"&;]*\)".*,\1,p' | sed 's/release\-//g' | tr '\-' '\.' | grep -v '^\*name$' | sort -V | tail -1)
-      ;;
-    "expat")
-      package_version_latest=$(curl ${curl_options} 'https://github.com/libexpat/libexpat/releases' | sed -n 's,.*releases/tag/\([^"&;]*\)".*,\1,p' | grep -v '^\*name$' | sed 's/R_//g' | tr '_' '.' | sort -V | tail -1)
-      ;;
     "freetype")
       package_version_latest=$(curl ${curl_options} 'https://sourceforge.net/projects/freetype/files/freetype2/' | sed -n 's,.*/projects/.*/\([0-9][^"]*\)/".*,\1,p' | sort -V | tail -1)
       ;;
     "harfbuzz")
-      package_version_latest=$(curl ${curl_options} 'https://github.com/harfbuzz/harfbuzz/releases' | sed -n 's,.*releases/tag/\([^"&;]*\)".*,\1,p' | sed 's/^v//g' | sort -V | tail -1)
+      package_version_latest=$(latest_github_release "harfbuzz" "harfbuzz")
       ;;
     "qt")
       qt_major_version=$(curl ${curl_options} "https://download.qt.io/official_releases/qt/" | sed -n 's,.*<a href=\"\([0-9]*\.[0-9]*\).*,\1,p' | sort -V | tail -1)
       package_version_latest=$(curl ${curl_options} "https://download.qt.io/official_releases/qt/${qt_major_version}/" | sed -n 's,.*href="\([0-9]*\.[0-9]*\.[^/]*\)/".*,\1,p' | sort -V | tail -1)
       ;;
     "quazip")
-      package_version_latest=$(curl ${curl_options} 'https://github.com/stachenov/quazip/releases' | sed -n 's,.*releases/tag/\([^"&;]*\)".*,\1,p' | sed 's/^v//g' | sort -V | tail -1)
-      ;;
-    "win_flex_bison")
-      package_version_latest=$(curl ${curl_options} 'https://sourceforge.net/projects/winflexbison/files/' | sed -n 's,.*<a href=".*files\/win_flex_bison-\(.*\)\.zip\/.*,\1,p' | grep -v 'latest' | sort -V | tail -1)
+      package_version_latest=$(latest_github_release "stachenov" "quazip")
       ;;
     "mariadbclient")
       package_version_latest=$(curl ${curl_options} 'https://archive.mariadb.org/' | sed -n 's,.*connector-c-\([0-9\.]\+\).*,\1,p' | sort -V | tail -1)
@@ -305,6 +311,12 @@ fi
 gh_username=$(sed -n 's,^[ ]*user: \(.*\)$,\1,p' ~/.config/gh/hosts.yml)
 if [ "${gh_username}" = "" ]; then
   error "Missing GitHub username."
+  exit 1
+fi
+
+gh_token=$(gh auth token 2>/dev/null)
+if [ "${gh_token}" = "" ]; then
+  error "Missing GitHub token."
   exit 1
 fi
 
