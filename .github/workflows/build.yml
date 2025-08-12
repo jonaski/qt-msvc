@@ -232,7 +232,7 @@ jobs:
 
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
 
       - name: Create downloads directory
@@ -1433,7 +1433,7 @@ jobs:
         run: sudo apt install -y git hub
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
