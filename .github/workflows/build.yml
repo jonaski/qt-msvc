@@ -1173,6 +1173,13 @@ jobs:
         working-directory: build
         run: tar -xf ../downloads/qtbase-everywhere-src-${{env.qt_version}}.tar.xz
 
+      - name: Patch qtbase
+        shell: bash
+        working-directory: build/qtbase-everywhere-src-${{env.qt_version}}
+        run: |
+          patch -p1 < ../../patches/qtbase-networkcache.patch
+          patch -p1 < ../../patches/qtbase-qwindowswindow.patch
+
       - name: Copy sqlite3
         shell: bash
         working-directory: build
