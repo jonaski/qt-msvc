@@ -885,6 +885,7 @@ jobs:
         run: tar -xf  ../downloads/boost_${{env.boost_version_underscore}}.tar.gz
 
       - name: Configure Boost
+        if: matrix.arch != 'arm64'
         shell: cmd
         env:
           CL: -MP
@@ -892,6 +893,7 @@ jobs:
         run: bootstrap.bat
 
       - name: Build and install Boost
+        if: matrix.arch != 'arm64'
         shell: cmd
         env:
           CL: -MP
