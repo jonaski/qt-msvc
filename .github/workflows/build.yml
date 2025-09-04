@@ -230,7 +230,7 @@ jobs:
 
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
 
       - name: Install python dependencies
         shell: cmd
