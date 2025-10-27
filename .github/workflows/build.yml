@@ -1490,7 +1490,7 @@ jobs:
           done
 
       - name: Download artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           path: releases
 
