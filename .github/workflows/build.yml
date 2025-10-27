@@ -1439,7 +1439,7 @@ jobs:
         run: tar -cJf qt-msvc-${{matrix.arch}}-${{env.buildtype}}.tar.xz --transform "s,^$(echo ${{env.prefix_path_unix}} | cut -d '/' -f 2-),qt_msvc_${{matrix.arch}}_${{env.buildtype}}," ${{env.prefix_path_unix}}
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: qt-msvc-${{matrix.arch}}-${{env.buildtype}}
           path: qt-msvc-${{matrix.arch}}-${{env.buildtype}}.tar.xz
