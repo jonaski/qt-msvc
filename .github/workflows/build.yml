@@ -41,7 +41,7 @@ env:
 
   glib_version: '2.86.1'
 
-  freetype_version: '2.14.1'
+  freetype_version: '2012-08-03'
 
   harfbuzz_version: '12.2.0'
 
