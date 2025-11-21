@@ -246,7 +246,7 @@ jobs:
 
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
 
       - name: Create downloads directory
@@ -1459,7 +1459,7 @@ jobs:
         run: sudo apt install -y git hub
 
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
