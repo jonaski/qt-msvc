@@ -29,7 +29,7 @@ env:
 
   brotli_version: '1.2.0'
 
-  icu4c_version: '78.1'
+  icu4c_version: '78.2'
 
   expat_version: '2.7.3'
 
