@@ -26,7 +26,7 @@ function error() { echo "[$(timestamp)] ERROR: $*" >&2; }
 
 function latest_github_release() {
 
-  curl ${curl_options} -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" -H "Authorization: Bearer ${gh_token}" "https://api.github.com/repos/$1/$2/releases/latest" | jq -r '.tag_name' | sed 's/^v//g' | sed 's/^sparsehash-//g' | sed 's/^faac-//g' | sort -V | head -1
+  curl ${curl_options} -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" -H "Authorization: Bearer ${gh_token}" "https://api.github.com/repos/$1/$2/releases/latest" | jq -r '.tag_name' | sed 's/^version-//g' | sed 's/^v//g' | sed 's/^sparsehash-//g' | sed 's/^faac-//g' | sed 's/^nettle_//g' | sort -V | head -1
 
 }
 
@@ -205,6 +205,12 @@ function update_package() {
       ;;
     "file")
       package_version_latest=$(curl ${curl_options} 'https://astron.com/pub/file/' | grep 'file-' | sed -n 's,.*file-\([0-9][^>]*\)\.tar.*,\1,p' | tail -1)
+      ;;
+    "getopt_win")
+      package_version_latest=$(latest_github_release "ludvikjerabek" "getopt-win")
+      ;;
+    "proxy_libintl")
+      package_version_latest=$(latest_github_release "frida" "proxy-libintl")
       ;;
     *)
       package_version_latest=
