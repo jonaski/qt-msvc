@@ -209,6 +209,12 @@ jobs:
           echo "file_version_underscore=$(echo ${{env.file_version}} | sed 's/\./_/g')" >> $GITHUB_ENV
           echo "expat_version_underscore=$(echo ${{env.expat_version}} | sed 's/\./_/g')" >> $GITHUB_ENV
 
+      - name: Set pkg-config variables
+        shell: bash
+        run: |
+          echo "PKG_CONFIG_EXECUTABLE=${{env.prefix_path_backslash}}\bin\pkgconf.exe" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=${{env.prefix_path_backslash}}\lib\pkgconfig" >> $GITHUB_ENV
+
       - name: Create directories
         shell: bash
         run: mkdir -p ${{env.prefix_path_unix}}/{bin,lib,include}
@@ -359,17 +365,11 @@ jobs:
 
       - name: Configure mimalloc
         shell: cmd
-        env:
-          CL: -MP
-          PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
-          PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
         working-directory: build/mimalloc-${{env.mimalloc_version}}
         run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "${{env.cmake_generator}}" -DCMAKE_BUILD_TYPE="${{env.cmake_buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}"
 
       - name: Build mimalloc
         shell: cmd
-        env:
-          CL: -MP
         working-directory: build/mimalloc-${{env.mimalloc_version}}/build
         run: cmake --build .
 
@@ -448,17 +448,11 @@ jobs:
 
       - name: Configure yasm
         shell: cmd
-        env:
-          CL: -MP
-          PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
-          PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
         working-directory: build/yasm-${{env.yasm_version}}
         run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "${{env.cmake_generator}}" -DCMAKE_BUILD_TYPE="${{env.cmake_buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}"
 
       - name: Build yasm
         shell: cmd
-        env:
-          CL: -MP
         working-directory: build/yasm-${{env.yasm_version}}/build
         run: cmake --build .
 
@@ -536,7 +530,6 @@ jobs:
         shell: cmd
         working-directory: build/openssl-${{env.openssl_version}}
         run: nmake install_sw
-
 
       - name: Copy openssl libs
         shell: cmd
@@ -715,6 +708,10 @@ jobs:
         shell: cmd
         working-directory: build/xz-${{env.xz_version}}/build
         run: cmake --install .
+
+      - name: Check xz
+        shell: cmd
+        run: pkg-config liblzma --libs --cflags
 
 
       - name: Download brotli
@@ -1041,6 +1038,13 @@ jobs:
         working-directory: build/glib-${{env.glib_version}}/build
         run: ninja install
 
+      - name: Check GLib
+        shell: cmd
+        run: |
+          pkg-config glib-2.0 --libs --cflags
+          pkg-config gobject-2.0 --libs --cflags
+          pkg-config gio-2.0 --libs --cflags
+
 
       - name: Download freetype
         shell: bash
@@ -1155,17 +1159,11 @@ jobs:
 
       - name: Configure mariadbclient
         shell: cmd
-        env:
-          CL: -MP
-          PKG_CONFIG_EXECUTABLE: ${{env.prefix_path_backslash}}\bin\pkgconf.exe
-          PKG_CONFIG_PATH: ${{env.prefix_path_backslash}}\lib\pkgconfig
         working-directory: build/mariadb-connector-c-${{env.mariadbclient_version}}-src
         run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "${{env.cmake_generator}}" -DCMAKE_BUILD_TYPE="${{env.cmake_buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}" -DBUILD_SHARED_LIBS=ON -DWITH_SSL=ON -DWITH_UNIT_TESTS=OFF -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 
       - name: Build mariadbclient
         shell: cmd
-        env:
-          CL: -MP
         working-directory: build/mariadb-connector-c-${{env.mariadbclient_version}}-src/build
         run: cmake --build .
 
