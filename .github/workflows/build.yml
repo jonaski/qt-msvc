@@ -96,16 +96,6 @@ jobs:
            arch: x86_64
            buildtype: release
 
-         - name: "Windows x86 debug"
-           runner: windows-2022
-           arch: x86
-           buildtype: debug
-
-         - name: "Windows x86 release"
-           runner: windows-2022
-           arch: x86
-           buildtype: release
-
          - name: "Windows arm64 debug"
            runner: windows-11-arm
            arch: arm64
@@ -156,20 +146,6 @@ jobs:
         if: env.buildtype == 'debug'
         shell: bash
         run: echo "lib_postfix=d" >> $GITHUB_ENV
-
-      - name: Set arch variables (x86)
-        if: matrix.arch == 'x86'
-        shell: bash
-        run: |
-          echo "openssl_platform=VC-WIN32" >> $GITHUB_ENV
-          echo "msbuild_platform=win32" >> $GITHUB_ENV
-          echo "arch_short=x86" >> $GITHUB_ENV
-          echo "arch_win=win32" >> $GITHUB_ENV
-          echo "arch_bits=32" >> $GITHUB_ENV
-          echo "libdir=lib" >> $GITHUB_ENV
-          echo "bindir=bin" >> $GITHUB_ENV
-          echo "libjpeg_turbo_simd=ON" >> $GITHUB_ENV
-          echo "boost_architecture=x86" >> $GITHUB_ENV
 
       - name: Set arch variables (x86_64)
         if: matrix.arch == 'x86_64'
