@@ -1146,7 +1146,9 @@ jobs:
       - name: Patch qtbase
         shell: bash
         working-directory: build/qtbase-everywhere-src-${{env.qt_version}}
-        run: patch -p1 < ../../patches/qtbase-qwindowswindow.patch
+        run: |
+          patch -p1 < ../../patches/qtbase-qwindowswindow.patch
+          patch -p1 < ../../patches/qtbase-openssl4.patch
 
       - name: Copy sqlite3
         shell: bash
