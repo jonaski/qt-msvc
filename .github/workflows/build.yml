@@ -726,31 +726,6 @@ jobs:
           pkg-config libbrotlidec --libs --cflags
           pkg-config libbrotlienc --libs --cflags
 
-      - name: Download libiconv
-        shell: cmd
-        working-directory: build
-        run: git clone https://github.com/pffang/libiconv-for-Windows
-
-      - name: Build libiconv
-        shell: cmd
-        env:
-          CL: -MP
-        working-directory: build/libiconv-for-Windows
-        run: msbuild libiconv.sln /property:Configuration=${{env.buildtype}}
-
-      - name: Install libiconv
-        shell: cmd
-        working-directory: build/libiconv-for-Windows
-        run: |
-          copy include\*.h ${{env.prefix_path_backslash}}\include\
-          copy output\${{env.msbuild_platform}}\${{env.buildtype}}\*.lib ${{env.prefix_path_backslash}}\lib\
-          copy output\${{env.msbuild_platform}}\${{env.buildtype}}\*.dll ${{env.prefix_path_backslash}}\bin\
-
-      - name: Copy libiconv (debug)
-        if: env.buildtype == 'debug'
-        shell: bash
-        run: cp ${{env.prefix_path_unix}}/lib/libiconvD.lib ${{env.prefix_path_unix}}/lib/libiconv.lib
-
 
       - name: Download icu
         shell: bash
