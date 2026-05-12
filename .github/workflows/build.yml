@@ -51,7 +51,7 @@ env:
 
   mariadbclient_version: '3.4.8'
 
-  qt_version: '6.11.0'
+  qt_version: '6.11.1'
 
   quazip_version: '1.7.1'
 
