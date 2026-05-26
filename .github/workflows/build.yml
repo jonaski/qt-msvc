@@ -53,7 +53,7 @@ env:
 
   qt_version: '6.11.0'
 
-  quazip_version: '1.5'
+  quazip_version: '1.6'
 
 
   max_releases: '6'
