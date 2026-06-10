@@ -49,7 +49,7 @@ env:
 
   harfbuzz_version: '14.2.1'
 
-  mariadbclient_version: '3.4.8'
+  mariadbclient_version: '3.4.9'
 
   qt_version: '6.11.1'
 
