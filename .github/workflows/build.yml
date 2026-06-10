@@ -39,7 +39,7 @@ env:
 
   boost_version: '1.91.0'
 
-  file_version: '5.44'
+  file_version: '5.48'
 
   sqlite3_version: '3530200'
 
