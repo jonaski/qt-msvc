@@ -57,7 +57,7 @@ env:
 
   harfbuzz_version: '15.1.0'
 
-  mariadbclient_version: '3.4.9'
+  mariadbclient_version: '3.4.11'
 
   qt_version: '6.12.0'
 
