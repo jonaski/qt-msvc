@@ -5,11 +5,11 @@ env:
 
   nasm_version: '3.02'
 
-  yasm_version: '1.3.0'
+  yasm_version: '09d1bc90ed53d0ec3e9b074f111058cbf262ed56'
 
   win_flex_bison_version: '2.5.25'
 
-  pkgconf_version: '3.0.7'
+  pkgconf_version: '3.0.10'
 
   proxy_libintl_version: '0.5'
 
@@ -19,31 +19,35 @@ env:
 
   zlib_version: '1.3.2'
 
-  openssl_version: '4.0.2'
+  openssl_version: '4.1.0'
 
-  libpng_version: '1.6.58'
+  libpng_version: '1.6.59'
 
-  libjpeg_turbo_version: '3.2.0'
+  libjpeg_turbo_version: '3.2.1'
 
-  pcre2_version: '10.47'
+  pcre2_version: '10.49'
 
   bzip2_version: '1.0.8'
 
   xz_version: '5.8.4'
 
-  brotli_version: '1.2.0'
+  brotli_version: '1.2.1'
 
-  icu4c_version: '78.3'
+  uchardet_version: '0.0.8'
 
-  expat_version: '2.8.5'
+  icu4c_version: '79.1'
+
+  expat_version: '2.10.0'
 
   boost_version: '1.92.0'
 
   file_version: '5.44'
 
-  sqlite3_version: '3530400'
+  sqlite3_version: '3540100'
 
-  glib_version: '2.90.0'
+  sqlite3_year: '2026'
+
+  glib_version: '2.90.1'
 
   jasper_version: '4.2.9'
 
@@ -51,24 +55,30 @@ env:
 
   libwebp_version: '1.6.0'
 
-  freetype_version: '2.14.3'
+  freetype_version: '2.15.0'
 
-  harfbuzz_version: '14.5.0'
+  harfbuzz_version: '15.1.0'
 
   mariadbclient_version: '3.4.9'
 
-  qt_version: '6.11.2'
+  qt_version: '6.12.0'
+
+  kdsingleapplication_version: '1.2.1'
+
+  qtsparkle_version: '1318e5b065bcd53a11fc5bc5a07498c85d274ee6'
 
   quazip_version: '1.7.2'
 
   pe_parse_version: '2.1.1'
 
+  pe_util_version: 'dc5dda5cbf89b6d81becaf9d2ddceedad7988346'
 
   max_releases: '6'
 
   curl_options: '-f -O -L --connect-timeout 60 -m 900 --retry 15 --retry-delay 10 --retry-max-time 300 --retry-all-errors'
 
-  sourceforge_mirror: 'downloads.sourceforge.net'
+  sourceforge_mirror1: 'downloads.sourceforge.net'
+  sourceforge_mirror2: 'netix.dl.sourceforge.net'
 
   qt_mirror: 'mirrors.ukfast.co.uk/sites/qt.io'
 
@@ -87,8 +97,6 @@ jobs:
 
   build-windows-msvc:
     name: Build Windows MSVC
-
-    if: (!contains(github.event.head_commit.message, 'skip ci'))
 
     strategy:
 
@@ -116,7 +124,15 @@ jobs:
 
     runs-on: ${{matrix.runner}}
 
+    outputs:
+      release_tag: ${{steps.set_release_tag.outputs.release_tag}}
+
     steps:
+
+      - name: Set release tag
+        id: set_release_tag
+        shell: bash
+        run: echo "release_tag=0.1.${{github.run_number}}" >> $GITHUB_OUTPUT
 
       - name: Set buildtype
         shell: bash
@@ -226,9 +242,26 @@ jobs:
 
 
       - name: Cleanup PATH
-        uses: egor-tensin/cleanup-path@v5
-        with:
-          dirs: ${{env.prefix_path_backslash}}\bin;C:\Windows;C:\Windows\system32;C:\Program Files\Git\bin;C:\Program Files\CMake\bin;C:\Program Files\GitHub CLI;C:\ProgramData\Chocolatey\bin;C:\Strawberry\perl\bin;C:\hostedtoolcache\windows\Python\${{env.python_version}}\${{env.arch_short}};C:\hostedtoolcache\windows\Python\${{env.python_version}}\${{env.arch_short}}\Scripts;C:\Users\runneradmin\.cargo\bin
+        shell: pwsh
+        run: |
+          $paths = @(
+            "${{env.prefix_path_backslash}}\bin",
+            "C:\Windows\system32",
+            "C:\Windows",
+            "C:\Windows\System32\Wbem",
+            "C:\Windows\System32\WindowsPowerShell\v1.0",
+            "C:\Program Files\PowerShell\7",
+            "C:\Program Files\Git\bin",
+            "C:\Program Files\CMake\bin",
+            "C:\Program Files\GitHub CLI",
+            "C:\ProgramData\Chocolatey\bin",
+            "C:\Program Files\7-Zip",
+            "C:\Strawberry\perl\bin",
+            "C:\hostedtoolcache\windows\Python\${{env.python_version}}\${{env.arch_short}}",
+            "C:\hostedtoolcache\windows\Python\${{env.python_version}}\${{env.arch_short}}\Scripts",
+            "C:\Users\runneradmin\.cargo\bin"
+          )
+          "PATH=$($paths -join ';')" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
 
       - name: Setup Python
@@ -240,11 +273,28 @@ jobs:
 
 
       - name: Setup MSVC Environment
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: ${{matrix.arch}}
-          sdk: ${{env.sdk_version}}
-          vsversion: 2022
+        shell: pwsh
+        run: |
+          $vcvars_arch = if ("${{matrix.arch}}" -eq "arm64") { "arm64" } else { "x64" }
+          $vc_tools_component = if ("${{matrix.arch}}" -eq "arm64") { "Microsoft.VisualStudio.Component.VC.Tools.ARM64" } else { "Microsoft.VisualStudio.Component.VC.Tools.x86.x64" }
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
+          $vs_path = & $vswhere -latest -products * -requires $vc_tools_component -property installationPath
+          if (-not $vs_path) { throw "Visual Studio with $vc_tools_component not found" }
+          Write-Host "Using Visual Studio in $vs_path"
+          # Run vcvarsall.bat from a batch file to avoid cmd.exe quoting issues, and print the resulting environment.
+          $vcvars_script = Join-Path $env:RUNNER_TEMP "vcvars.bat"
+          Set-Content -Path $vcvars_script -Encoding ascii -Value "@call `"$vs_path\VC\Auxiliary\Build\vcvarsall.bat`" $vcvars_arch ${{env.sdk_version}} || exit /b 1`r`n@set"
+          $vcvars_output = & cmd.exe /c $vcvars_script
+          if ($LASTEXITCODE -ne 0 -or ($vcvars_output -match '^\[ERROR:')) {
+            $vcvars_output | Write-Host
+            throw "vcvarsall.bat failed"
+          }
+          # Export the variables vcvarsall.bat added or changed to the following steps.
+          foreach ($line in $vcvars_output) {
+            if ($line -match '^([^=]+)=(.*)$' -and [Environment]::GetEnvironmentVariable($matches[1]) -ne $matches[2]) {
+              "$($matches[1])=$($matches[2])" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+            }
+          }
 
 
       - name: Checkout
@@ -268,7 +318,7 @@ jobs:
       - name: Download nasm
         shell: bash
         working-directory: downloads
-        run: curl ${{env.curl_options}} https://www.nasm.us/pub/nasm/releasebuilds/${{env.nasm_version}}/${{env.arch_win}}/${{steps.set-nasm-filename.outputs.nasm-filename}}
+        run: curl ${{env.curl_options}} https://www.nasm.us/pub/nasm/releasebuilds/${{env.nasm_version}}/${{env.arch_win}}/${{steps.set-nasm-filename.outputs.nasm-filename}} || curl ${{env.curl_options}} https://github.com/netwide-assembler/nasm/releases/download/nasm-${{env.nasm_version}}/${{steps.set-nasm-filename.outputs.nasm-filename}}
 
       - name: Create nasm directory
         shell: cmd
@@ -291,7 +341,7 @@ jobs:
       - name: Download win_flex_bison
         shell: bash
         working-directory: downloads
-        run: curl ${{env.curl_options}} https://github.com/lexxmark/winflexbison/releases/download/v${{env.win_flex_bison_version}}/win_flex_bison-${{env.win_flex_bison_version}}.zip
+        run: curl ${{env.curl_options}} https://github.com/lexxmark/winflexbison/releases/download/v${{env.win_flex_bison_version}}/win_flex_bison-${{env.win_flex_bison_version}}.zip || curl ${{env.curl_options}} https://packages.strawberrymusicplayer.org/win_flex_bison-${{env.win_flex_bison_version}}.zip
 
       - name: Create win_flex_bison directory
         shell: cmd
@@ -310,7 +360,7 @@ jobs:
       - name: Download pkgconf
         shell: bash
         working-directory: downloads
-        run: curl ${{env.curl_options}} https://github.com/pkgconf/pkgconf/archive/refs/tags/pkgconf-${{env.pkgconf_version}}.tar.gz
+        run: curl ${{env.curl_options}} https://github.com/pkgconf/pkgconf/archive/refs/tags/pkgconf-${{env.pkgconf_version}}.tar.gz || curl ${{env.curl_options}} https://packages.strawberrymusicplayer.org/pkgconf-${{env.pkgconf_version}}.tar.gz
 
       - name: Extract pkgconf
         shell: bash
@@ -335,6 +385,32 @@ jobs:
       - name: Copy pkgconf
         shell: cmd
         run: copy ${{env.prefix_path_backslash}}\bin\pkgconf.exe ${{env.prefix_path_backslash}}\bin\pkg-config.exe
+
+
+      - name: Download yasm
+        shell: bash
+        working-directory: build
+        run: git clone https://github.com/yasm/yasm.git
+
+      - name: Checkout yasm
+        shell: bash
+        working-directory: build/yasm
+        run: git checkout "${{env.yasm_version}}"
+
+      - name: Configure yasm
+        shell: cmd
+        working-directory: build/yasm
+        run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "${{env.cmake_generator}}" -DCMAKE_BUILD_TYPE="${{env.cmake_buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}"
+
+      - name: Build yasm
+        shell: cmd
+        working-directory: build/yasm/build
+        run: cmake --build .
+
+      - name: Install yasm
+        shell: cmd
+        working-directory: build/yasm/build
+        run: cmake --install .
 
 
       - name: Download mimalloc
@@ -366,7 +442,7 @@ jobs:
       - name: Download proxy-libintl
         shell: bash
         working-directory: downloads
-        run: curl ${{env.curl_options}} https://github.com/frida/proxy-libintl/archive/refs/tags/${{env.proxy_libintl_version}}/proxy-libintl-${{env.proxy_libintl_version}}.tar.gz
+        run: curl ${{env.curl_options}} https://github.com/frida/proxy-libintl/archive/refs/tags/${{env.proxy_libintl_version}}/proxy-libintl-${{env.proxy_libintl_version}}.tar.gz || curl ${{env.curl_options}} https://packages.strawberrymusicplayer.org/proxy-libintl-${{env.proxy_libintl_version}}.tar.gz
 
       - name: Extract proxy-libintl
         shell: bash
@@ -392,7 +468,7 @@ jobs:
       - name: Download getopt-win
         shell: bash
         working-directory: downloads
-        run: curl ${{env.curl_options}} https://github.com/ludvikjerabek/getopt-win/archive/refs/tags/v${{env.getopt_win_version}}/getopt-win-${{env.getopt_win_version}}.tar.gz
+        run: curl ${{env.curl_options}} https://github.com/ludvikjerabek/getopt-win/archive/refs/tags/v${{env.getopt_win_version}}/getopt-win-${{env.getopt_win_version}}.tar.gz || curl ${{env.curl_options}} https://packages.strawberrymusicplayer.org/getopt-win-${{env.getopt_win_version}}.tar.gz
 
       - name: Extract getopt-win
         shell: bash
@@ -415,41 +491,10 @@ jobs:
         run: cmake --install .
 
 
-      - name: Download yasm
-        shell: bash
-        working-directory: downloads
-        run: curl ${{env.curl_options}} http://www.tortall.net/projects/yasm/releases/yasm-${{env.yasm_version}}.tar.gz
-
-      - name: Extract yasm
-        shell: bash
-        working-directory: build
-        run: tar -xf ../downloads/yasm-${{env.yasm_version}}.tar.gz
-
-      - name: Patch yasm
-        shell: bash
-        working-directory: build/yasm-${{env.yasm_version}}
-        run: patch -p1 < ../../patches/yasm-cmake.patch
-
-      - name: Configure yasm
-        shell: cmd
-        working-directory: build/yasm-${{env.yasm_version}}
-        run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "${{env.cmake_generator}}" -DCMAKE_BUILD_TYPE="${{env.cmake_buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}"
-
-      - name: Build yasm
-        shell: cmd
-        working-directory: build/yasm-${{env.yasm_version}}/build
-        run: cmake --build .
-
-      - name: Install yasm
-        shell: cmd
-        working-directory: build/yasm-${{env.yasm_version}}/build
-        run: cmake --install .
-
-
       - name: Download zlib
         shell: bash
         working-directory: downloads
-        run: curl ${{env.curl_options}} https://github.com/madler/zlib/releases/download/v${{env.zlib_version}}/zlib-${{env.zlib_version}}.tar.gz
+        run: curl ${{env.curl_options}} https://github.com/madler/zlib/releases/download/v${{env.zlib_version}}/zlib-${{env.zlib_version}}.tar.gz || curl ${{env.curl_options}} https://zlib.net/zlib-${{env.zlib_version}}.tar.gz
 
       - name: Extract zlib
         shell: bash
@@ -486,7 +531,7 @@ jobs:
       - name: Download openssl
         shell: bash
         working-directory: downloads
-        run: curl ${{env.curl_options}} https://github.com/openssl/openssl/releases/download/openssl-${{env.openssl_version}}/openssl-${{env.openssl_version}}.tar.gz
+        run: curl ${{env.curl_options}} https://github.com/openssl/openssl/releases/download/openssl-${{env.openssl_version}}/openssl-${{env.openssl_version}}.tar.gz || curl ${{env.curl_options}} https://www.openssl.org/source/openssl-${{env.openssl_version}}.tar.gz
 
       - name: Extract openssl
         shell: bash
@@ -499,11 +544,12 @@ jobs:
         working-directory: build/openssl-${{env.openssl_version}}
         run: perl Configure ${{env.openssl_platform}} shared zlib no-capieng no-tests --prefix=${{env.prefix_path_backslash}} --libdir=lib --openssldir=${{env.prefix_path_backslash}}\ssl --${{env.buildtype}} --with-zlib-include=${{env.prefix_path_backslash}}\include --with-zlib-lib=${{env.prefix_path_backslash}}\lib\z${{env.lib_postfix}}.lib
 
+      # VC-WIN64-ARM replaces the inherited ex_libs with onecore.lib, dropping the zlib library, so add it back with LDLIBS.
       - name: Configure openssl
         if: matrix.arch == 'arm64'
         shell: cmd
         working-directory: build/openssl-${{env.openssl_version}}
-        run: perl Configure ${{env.openssl_platform}} shared no-capieng no-tests --prefix=${{env.prefix_path_backslash}} --libdir=lib --openssldir=${{env.prefix_path_backslash}}\ssl --${{env.buildtype}} --with-zlib-include=${{env.prefix_path_backslash}}\include --with-zlib-lib=${{env.prefix_path_backslash}}\lib\zlib${{env.lib_postfix}}.lib
+        run: perl Configure ${{env.openssl_platform}} shared zlib no-tests --prefix=${{env.prefix_path_backslash}} --libdir=lib --openssldir=${{env.prefix_path_backslash}}\ssl --${{env.buildtype}} --with-zlib-include=${{env.prefix_path_backslash}}\include --with-zlib-lib=${{env.prefix_path_backslash}}\lib\z${{env.lib_postfix}}.lib "LDLIBS=onecore.lib ${{env.prefix_path_backslash}}\lib\z${{env.lib_postfix}}.lib"
 
       - name: Build openssl
         shell: cmd
@@ -537,7 +583,7 @@ jobs:
       - name: Download libpng
         shell: bash
         working-directory: downloads
-        run: curl ${{env.curl_options}} https://${{env.sourceforge_mirror}}/project/libpng/libpng16/${{env.libpng_version}}/libpng-${{env.libpng_version}}.tar.xz
+        run: curl ${{env.curl_options}} https://${{env.sourceforge_mirror1}}/project/libpng/libpng16/${{env.libpng_version}}/libpng-${{env.libpng_version}}.tar.xz || curl ${{env.curl_options}} https://${{env.sourceforge_mirror2}}/project/libpng/libpng16/${{env.libpng_version}}/libpng-${{env.libpng_version}}.tar.xz
 
       - name: Extract libpng
         shell: bash
@@ -577,7 +623,7 @@ jobs:
       - name: Download libjpeg-turbo
         shell: bash
         working-directory: downloads
-        run: curl ${{env.curl_options}} https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/${{env.libjpeg_turbo_version}}/libjpeg-turbo-${{env.libjpeg_turbo_version}}.tar.gz
+        run: curl ${{env.curl_options}} https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/${{env.libjpeg_turbo_version}}/libjpeg-turbo-${{env.libjpeg_turbo_version}}.tar.gz || curl ${{env.curl_options}} https://${{env.sourceforge_mirror1}}/project/libjpeg-turbo/${{env.libjpeg_turbo_version}}/libjpeg-turbo-${{env.libjpeg_turbo_version}}.tar.gz || curl ${{env.curl_options}} https://${{env.sourceforge_mirror2}}/project/libjpeg-turbo/${{env.libjpeg_turbo_version}}/libjpeg-turbo-${{env.libjpeg_turbo_version}}.tar.gz
 
       - name: Extract libjpeg-turbo
         shell: bash
@@ -587,7 +633,7 @@ jobs:
       - name: Configure libjpeg-turbo
         shell: cmd
         working-directory: build/libjpeg-turbo-${{env.libjpeg_turbo_version}}
-        run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "${{env.cmake_generator}}" -DCMAKE_BUILD_TYPE="${{env.cmake_buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}" -DBUILD_SHARED_LIBS=ON -DENABLE_SHARED=ON -DWITH_SIMD=${{env.libjpeg_turbo_simd}}
+        run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "${{env.cmake_generator}}" -DCMAKE_BUILD_TYPE="${{env.cmake_buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}" -DBUILD_SHARED_LIBS=ON -DENABLE_SHARED=ON -DENABLE_STATIC=OFF -DWITH_SIMD=${{env.libjpeg_turbo_simd}}
 
       - name: Build libjpeg-turbo
         shell: cmd
@@ -607,7 +653,7 @@ jobs:
       - name: Download pcre2
         shell: bash
         working-directory: downloads
-        run: curl ${{env.curl_options}} https://github.com/PhilipHazel/pcre2/releases/download/pcre2-${{env.pcre2_version}}/pcre2-${{env.pcre2_version}}.tar.bz2
+        run: curl ${{env.curl_options}} https://github.com/PCRE2Project/pcre2/releases/download/pcre2-${{env.pcre2_version}}/pcre2-${{env.pcre2_version}}.tar.bz2 || curl ${{env.curl_options}} https://packages.strawberrymusicplayer.org/pcre2-${{env.pcre2_version}}.tar.bz2
 
       - name: Extract pcre2
         shell: bash
@@ -656,7 +702,7 @@ jobs:
       - name: Configure bzip2
         shell: cmd
         working-directory: build/bzip2-${{env.bzip2_version}}
-        run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "${{env.cmake_generator}}" -DCMAKE_BUILD_TYPE="${{env.cmake_buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}" -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+        run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "${{env.cmake_generator}}" -DCMAKE_BUILD_TYPE="${{env.cmake_buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}" -DBUILD_SHARED_LIBS=ON -DBUILD_STATIC_LIBS=OFF -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 
       - name: Build bzip2
         shell: cmd
@@ -676,7 +722,7 @@ jobs:
       - name: Download xz
         shell: bash
         working-directory: downloads
-        run: curl ${{env.curl_options}} https://github.com/tukaani-project/xz/releases/download/v${{env.xz_version}}/xz-${{env.xz_version}}.tar.xz
+        run: curl ${{env.curl_options}} https://github.com/tukaani-project/xz/releases/download/v${{env.xz_version}}/xz-${{env.xz_version}}.tar.xz || curl ${{env.curl_options}} https://tukaani.org/xz/xz-${{env.xz_version}}.tar.xz
 
       - name: Extract xz
         shell: bash
@@ -706,7 +752,7 @@ jobs:
       - name: Download brotli
         shell: bash
         working-directory: downloads
-        run: curl ${{env.curl_options}} https://github.com/google/brotli/archive/refs/tags/v${{env.brotli_version}}/brotli-${{env.brotli_version}}.tar.gz
+        run: curl ${{env.curl_options}} https://github.com/google/brotli/archive/refs/tags/v${{env.brotli_version}}/brotli-${{env.brotli_version}}.tar.gz || curl ${{env.curl_options}} https://packages.strawberrymusicplayer.org/brotli-${{env.brotli_version}}.tar.gz
 
       - name: Extract brotli
         shell: bash
@@ -735,10 +781,45 @@ jobs:
           pkg-config libbrotlienc --libs --cflags
 
 
+      - name: Download uchardet
+        shell: bash
+        working-directory: downloads
+        run: curl ${{env.curl_options}} https://www.freedesktop.org/software/uchardet/releases/uchardet-${{env.uchardet_version}}.tar.xz || curl ${{env.curl_options}} https://packages.strawberrymusicplayer.org/uchardet-${{env.uchardet_version}}.tar.xz
+
+      - name: Extract uchardet
+        shell: bash
+        working-directory: build
+        run: tar -xf ../downloads/uchardet-${{env.uchardet_version}}.tar.xz
+
+      - name: Patch uchardet
+        shell: bash
+        working-directory: build/uchardet-${{env.uchardet_version}}
+        run: sed -i "/^Libs.private.*/d" uchardet.pc.in
+
+      - name: Configure uchardet
+        shell: cmd
+        working-directory: build/uchardet-${{env.uchardet_version}}
+        run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "${{env.cmake_generator}}" -DCMAKE_BUILD_TYPE="${{env.cmake_buildtype}}" -DCMAKE_INSTALL_PREFIX=${{env.prefix_path_backslash}} -DBUILD_SHARED_LIBS=ON -DBUILD_STATIC=OFF -DBUILD_BINARY=OFF -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+
+      - name: Build uchardet
+        shell: cmd
+        working-directory: build/uchardet-${{env.uchardet_version}}/build
+        run: cmake --build .
+
+      - name: Install uchardet
+        shell: cmd
+        working-directory: build/uchardet-${{env.uchardet_version}}/build
+        run: cmake --install .
+
+      - name: Check uchardet
+        shell: cmd
+        run: pkg-config uchardet --libs --cflags
+
+
       - name: Download icu
         shell: bash
         working-directory: downloads
-        run: curl ${{env.curl_options}} https://github.com/unicode-org/icu/releases/download/release-${{env.icu4c_version}}/icu4c-${{env.icu4c_version}}-sources.tgz
+        run: curl ${{env.curl_options}} https://github.com/unicode-org/icu/releases/download/release-${{env.icu4c_version}}/icu4c-${{env.icu4c_version}}-sources.tgz || curl ${{env.curl_options}} https://packages.strawberrymusicplayer.org/icu4c-${{env.icu4c_version}}-sources.tgz
 
       - name: Extract icu
         shell: bash
@@ -823,7 +904,7 @@ jobs:
       - name: Download expat
         shell: bash
         working-directory: downloads
-        run: curl ${{env.curl_options}} https://github.com/libexpat/libexpat/releases/download/R_${{env.expat_version_underscore}}/expat-${{env.expat_version}}.tar.xz
+        run: curl ${{env.curl_options}} https://github.com/libexpat/libexpat/releases/download/R_${{env.expat_version_underscore}}/expat-${{env.expat_version}}.tar.xz || curl ${{env.curl_options}} https://${{env.sourceforge_mirror1}}/project/expat/expat/${{env.expat_version}}/expat-${{env.expat_version}}.tar.xz || curl ${{env.curl_options}} https://${{env.sourceforge_mirror2}}/project/expat/expat/${{env.expat_version}}/expat-${{env.expat_version}}.tar.xz
 
       - name: Extract expat
         shell: bash
@@ -933,7 +1014,7 @@ jobs:
       - name: Download SQLite
         shell: bash
         working-directory: downloads
-        run: curl ${{env.curl_options}} https://sqlite.org/2026/sqlite-autoconf-${{env.sqlite3_version}}.tar.gz
+        run: curl ${{env.curl_options}} https://sqlite.org/${{env.sqlite3_year}}/sqlite-autoconf-${{env.sqlite3_version}}.tar.gz
 
       - name: Extract SQLite
         shell: bash
@@ -980,7 +1061,7 @@ jobs:
       - name: Download GLib
         shell: bash
         working-directory: downloads
-        run: curl ${{env.curl_options}} https://download.gnome.org/sources/glib/${{env.glib_version_short}}/glib-${{env.glib_version}}.tar.xz
+        run: curl ${{env.curl_options}} https://download.gnome.org/sources/glib/${{env.glib_version_short}}/glib-${{env.glib_version}}.tar.xz || curl ${{env.curl_options}} https://packages.strawberrymusicplayer.org/glib-${{env.glib_version}}.tar.xz
 
       - name: Extract GLib
         shell: bash
@@ -1013,24 +1094,24 @@ jobs:
       - name: Download freetype
         shell: bash
         working-directory: downloads
-        run: curl ${{env.curl_options}} https://${{env.sourceforge_mirror}}/project/freetype/freetype2/${{env.freetype_version}}/freetype-${{env.freetype_version}}.tar.gz
+        run: curl ${{env.curl_options}} https://${{env.sourceforge_mirror1}}/project/freetype/freetype2/${{env.freetype_version}}/freetype-${{env.freetype_version}}.tar.gz || curl ${{env.curl_options}} https://${{env.sourceforge_mirror2}}/project/freetype/freetype2/${{env.freetype_version}}/freetype-${{env.freetype_version}}.tar.gz
 
-      - name: Extract freetype (boostrap)
+      - name: Extract freetype (bootstrap)
         shell: bash
         working-directory: build
         run: tar -xf ../downloads/freetype-${{env.freetype_version}}.tar.gz
 
-      - name: Configure freetype (boostrap)
+      - name: Configure freetype (bootstrap)
         shell: cmd
         working-directory: build/freetype-${{env.freetype_version}}
         run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "${{env.cmake_generator}}" -DCMAKE_BUILD_TYPE="${{env.cmake_buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}" -DBUILD_SHARED_LIBS=ON
 
-      - name: Build freetype (boostrap)
+      - name: Build freetype (bootstrap)
         shell: cmd
         working-directory: build/freetype-${{env.freetype_version}}/build
         run: cmake --build .
 
-      - name: Install freetype (boostrap)
+      - name: Install freetype (bootstrap)
         shell: cmd
         working-directory: build/freetype-${{env.freetype_version}}/build
         run: cmake --install .
@@ -1048,7 +1129,7 @@ jobs:
       - name: Download harfbuzz
         shell: bash
         working-directory: downloads
-        run: curl ${{env.curl_options}} https://github.com/harfbuzz/harfbuzz/releases/download/${{env.harfbuzz_version}}/harfbuzz-${{env.harfbuzz_version}}.tar.xz
+        run: curl ${{env.curl_options}} https://github.com/harfbuzz/harfbuzz/releases/download/${{env.harfbuzz_version}}/harfbuzz-${{env.harfbuzz_version}}.tar.xz || curl ${{env.curl_options}} https://www.freedesktop.org/software/harfbuzz/release/harfbuzz-${{env.harfbuzz_version}}.tar.xz
 
       - name: Extract harfbuzz
         shell: bash
@@ -1058,7 +1139,7 @@ jobs:
       - name: Configure harfbuzz
         shell: cmd
         working-directory: build/harfbuzz-${{env.harfbuzz_version}}
-        run: meson setup --buildtype=${{env.meson_buildtype}} --default-library=shared --prefix="${{env.prefix_path_backslash}}" --pkg-config-path=${{env.prefix_path_backslash}}\lib\pkgconfig --wrap-mode=nodownload -Dcpp_std=c++17 -Dc_args=-I${{env.prefix_path_backslash}}\include -Dcpp_args=-I${{env.prefix_path_backslash}}\include -Dtests=disabled -Ddocs=disabled -Dfreetype=enabled -Dicu=enabled build
+        run: meson setup --buildtype=${{env.meson_buildtype}} --default-library=shared --prefix="${{env.prefix_path_backslash}}" --pkg-config-path=${{env.prefix_path_backslash}}\lib\pkgconfig --wrap-mode=nodownload -Dcpp_std=c++17 -Dc_args=-I${{env.prefix_path_backslash}}\include -Dcpp_args=-I${{env.prefix_path_backslash}}\include -Dtests=disabled -Ddocs=disabled -Dfreetype=enabled -Dicu=enabled -Dcairo=disabled -Dutilities=disabled build
 
       - name: Build harfbuzz
         shell: cmd
@@ -1471,6 +1552,58 @@ jobs:
         run: cmake --install .
 
 
+      - name: Download qtsparkle
+        shell: bash
+        working-directory: build
+        run: git clone https://github.com/jonaski/qtsparkle.git qtsparkle-git
+
+      - name: Checkout qtsparkle
+        shell: bash
+        working-directory: build/qtsparkle-git
+        run: git checkout "${{env.qtsparkle_version}}"
+
+      - name: Configure qtsparkle
+        shell: cmd
+        working-directory: build/qtsparkle-git
+        run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "${{env.cmake_generator}}" -DCMAKE_BUILD_TYPE="${{env.cmake_buildtype}}" -DBUILD_WITH_QT6=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_PREFIX_PATH="${{env.prefix_path_backslash}}\lib\cmake" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_forwardslash}}"
+
+      - name: Build qtsparkle
+        shell: cmd
+        working-directory: build/qtsparkle-git/build
+        run: cmake --build .
+
+      - name: Install qtsparkle
+        shell: cmd
+        working-directory: build/qtsparkle-git/build
+        run: cmake --install .
+
+
+      - name: Download KDSingleApplication
+        shell: bash
+        working-directory: downloads
+        run: curl ${{env.curl_options}} https://github.com/KDAB/KDSingleApplication/releases/download/v${{env.kdsingleapplication_version}}/kdsingleapplication-${{env.kdsingleapplication_version}}.tar.gz || curl ${{env.curl_options}} https://packages.strawberrymusicplayer.org/kdsingleapplication-${{env.kdsingleapplication_version}}.tar.gz
+
+      - name: Extract KDSingleApplication
+        shell: bash
+        working-directory: build
+        run: tar -xf ../downloads/kdsingleapplication-${{env.kdsingleapplication_version}}.tar.gz
+
+      - name: Configure KDSingleApplication
+        shell: cmd
+        working-directory: build/kdsingleapplication-${{env.kdsingleapplication_version}}
+        run: cmake --log-level="${{env.cmake_loglevel}}" -S . -B build -G "${{env.cmake_generator}}" -DCMAKE_BUILD_TYPE="${{env.cmake_buildtype}}" -DCMAKE_INSTALL_PREFIX="${{env.prefix_path_backslash}}" -DBUILD_SHARED_LIBS=ON -DKDSingleApplication_QT6=ON
+
+      - name: Build KDSingleApplication
+        shell: cmd
+        working-directory: build/kdsingleapplication-${{env.kdsingleapplication_version}}/build
+        run: cmake --build .
+
+      - name: Install KDSingleApplication
+        shell: cmd
+        working-directory: build/kdsingleapplication-${{env.kdsingleapplication_version}}/build
+        run: cmake --install .
+
+
       - name: Download quazip
         shell: bash
         working-directory: downloads
@@ -1531,7 +1664,14 @@ jobs:
       - name: Download pe-util
         shell: bash
         working-directory: build
-        run: git clone --depth 1 --recurse-submodules https://github.com/gsauthof/pe-util
+        run: git clone https://github.com/gsauthof/pe-util
+
+      - name: Checkout pe-util
+        shell: bash
+        working-directory: build/pe-util
+        run: |
+          git checkout "${{env.pe_util_version}}"
+          git submodule update --init --recursive
 
       - name: Configure pe-util
         shell: cmd
@@ -1569,6 +1709,7 @@ jobs:
     steps:
 
       - name: Install packages
+        shell: bash
         env:
           DEBIAN_FRONTEND: noninteractive
         run: sudo apt install -y git hub
@@ -1579,13 +1720,16 @@ jobs:
           fetch-depth: 0
 
       - name: Set release tag
-        run: echo "release_tag=release-$GITHUB_RUN_ID" >> $GITHUB_ENV
+        shell: bash
+        run: echo "release_tag=${{needs.build-windows-msvc.outputs.release_tag}}" >> $GITHUB_ENV
 
       - name: Set have release
-        run: echo "have_release=$(git tag -l | grep ${{env.release_tag}} >/dev/null 2>&1 && echo 1 || echo 0)" >> $GITHUB_ENV
+        shell: bash
+        run: echo "have_release=$(git tag -l | grep -Fx "${{env.release_tag}}" >/dev/null 2>&1 && echo 1 || echo 0)" >> $GITHUB_ENV
 
       - name: Delete existing release
         if: env.have_release == '1'
+        shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -1594,6 +1738,7 @@ jobs:
           git push --delete origin "${{env.release_tag}}"
 
       - name: Delete old releases
+        shell: bash
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         run: |
@@ -1610,6 +1755,7 @@ jobs:
           path: releases
 
       - name: Set release notes file
+        shell: bash
         run: echo "release_notes_file=release_notes.txt" >> $GITHUB_ENV
 
       - name: Create release notes
@@ -1619,27 +1765,37 @@ jobs:
           echo "Libraries:" >> "${{env.release_notes_file}}"
           echo "" >> "${{env.release_notes_file}}"
           echo "* pkgconf ${{env.pkgconf_version}}" >> "${{env.release_notes_file}}"
+          echo "* yasm ${{env.yasm_version}}" >> "${{env.release_notes_file}}"
           echo "* mimalloc ${{env.mimalloc_version}}" >> "${{env.release_notes_file}}"
+          echo "* proxy-libintl ${{env.proxy_libintl_version}}" >> "${{env.release_notes_file}}"
+          echo "* getopt-win ${{env.getopt_win_version}}" >> "${{env.release_notes_file}}"
           echo "* zlib ${{env.zlib_version}}" >> "${{env.release_notes_file}}"
           echo "* OpenSSL ${{env.openssl_version}}" >> "${{env.release_notes_file}}"
-          echo "* libng ${{env.libpng_version}}" >> "${{env.release_notes_file}}"
+          echo "* libpng ${{env.libpng_version}}" >> "${{env.release_notes_file}}"
           echo "* libjpeg-turbo ${{env.libjpeg_turbo_version}}" >> "${{env.release_notes_file}}"
           echo "* PCRE2 ${{env.pcre2_version}}" >> "${{env.release_notes_file}}"
           echo "* bzip2 ${{env.bzip2_version}}" >> "${{env.release_notes_file}}"
           echo "* xz ${{env.xz_version}}" >> "${{env.release_notes_file}}"
           echo "* Brotli ${{env.brotli_version}}" >> "${{env.release_notes_file}}"
+          echo "* uchardet ${{env.uchardet_version}}" >> "${{env.release_notes_file}}"
           echo "* ICU4C ${{env.icu4c_version}}" >> "${{env.release_notes_file}}"
-          echo "* Boost ${{env.boost_version}}" >> "${{env.release_notes_file}}"
           echo "* Expat ${{env.expat_version}}" >> "${{env.release_notes_file}}"
+          echo "* Boost ${{env.boost_version}}" >> "${{env.release_notes_file}}"
           echo "* File (libmagic) ${{env.file_version}}" >> "${{env.release_notes_file}}"
           echo "* SQLite ${{env.sqlite3_version}}" >> "${{env.release_notes_file}}"
           echo "* GLib ${{env.glib_version}}" >> "${{env.release_notes_file}}"
-          echo "* GLib Networking ${{env.glib_networking_version}}" >> "${{env.release_notes_file}}"
           echo "* FreeType ${{env.freetype_version}}" >> "${{env.release_notes_file}}"
-          echo "* Harfbuzz ${{env.harfbuzz_version}}" >> "${{env.release_notes_file}}"
+          echo "* HarfBuzz ${{env.harfbuzz_version}}" >> "${{env.release_notes_file}}"
+          echo "* JasPer ${{env.jasper_version}}" >> "${{env.release_notes_file}}"
+          echo "* libtiff ${{env.tiff_version}}" >> "${{env.release_notes_file}}"
+          echo "* libwebp ${{env.libwebp_version}}" >> "${{env.release_notes_file}}"
           echo "* mariadbclient ${{env.mariadbclient_version}}" >> "${{env.release_notes_file}}"
           echo "* Qt ${{env.qt_version}}" >> "${{env.release_notes_file}}"
+          echo "* qtsparkle ${{env.qtsparkle_version}}" >> "${{env.release_notes_file}}"
+          echo "* KDSingleApplication ${{env.kdsingleapplication_version}}" >> "${{env.release_notes_file}}"
           echo "* QuaZip ${{env.quazip_version}}" >> "${{env.release_notes_file}}"
+          echo "* pe-parse ${{env.pe_parse_version}}" >> "${{env.release_notes_file}}"
+          echo "* pe-util ${{env.pe_util_version}}" >> "${{env.release_notes_file}}"
 
       - name: Create Release
         env:
@@ -1652,3 +1808,4 @@ jobs:
             files+=("-a" "${file}")
           done
           hub release create -t "$GITHUB_SHA" "${files[@]}" -F "${{env.release_notes_file}}" "${{env.release_tag}}"
+
