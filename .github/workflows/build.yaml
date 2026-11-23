@@ -35,7 +35,7 @@ env:
 
   icu4c_version: '79.1'
 
-  expat_version: '2.10.0'
+  expat_version: '2.11.0'
 
   boost_version: '1.92.0'
 
