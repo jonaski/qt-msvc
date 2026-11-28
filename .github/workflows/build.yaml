@@ -7,7 +7,7 @@ env:
 
   yasm_version: '09d1bc90ed53d0ec3e9b074f111058cbf262ed56'
 
-  win_flex_bison_version: '2.5.25'
+  win_flex_bison_version: '2.5.26'
 
   pkgconf_version: '3.0.11'
 
